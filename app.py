@@ -1,4 +1,5 @@
 from collections import Counter
+import json
 
 import numpy as np
 import pandas as pd
@@ -9,8 +10,8 @@ import networkx as nx
 import dash
 import dash_core_components as dcc
 import dash_cytoscape as cyto
-import dash_html_components as html
 import dash_bootstrap_components as dbc
+from dash import html, Input, Output
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -132,11 +133,16 @@ app.layout = html.Div(
 # For Word Search and Depth Option
 
 # On clicking of node
-
+@app.callback(Output('clicked-num-connected', 'children'),
+              Input('cytoscape-graph', 'tapNode'))
+def displayTapNodeData(data):
+    if data:
+        return json.dumps(data, indent=2)
 
 # On Panning
 
 # Setting all the layout Component
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)
