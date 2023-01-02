@@ -63,10 +63,12 @@ word_input = html.Div(
 depth_slider = html.Div([
     html.H6("Pick the Recursive Depth of the Concept Graph",
             style={"margin-left": "2%"}),
-    dcc.Slider(0, 20, 5,
+    dcc.Slider(0, 20, 1,
                value=10,
-               id='my-slider'
-               )],
+               id='depth-slider'
+               ),
+    dbc.Badge("Chosen Depth of 10", color="info", id='chosen-depth-display')
+],
     style={"margin": "2% 10% 2% 10%"}
 )
 
@@ -127,12 +129,21 @@ app.layout = html.Div(
     ],
 )
 
-
 # Callbacks
 
 # For Word Search and Depth Option
 
+# Displaying the chosen Depth
+
+
+@app.callback(Output('chosen-depth-display', 'children'),
+              Input('depth-slider', 'value'))
+def displayDepthOption(depth_value):
+    return f"Chosen Depth of {depth_value}"
+
 # On clicking of node
+
+
 @app.callback(Output('clicked-num-connected', 'children'),
               Input('cytoscape-graph', 'tapNode'))
 def displayTapNodeData(data):
