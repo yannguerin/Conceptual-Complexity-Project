@@ -1,4 +1,7 @@
+from database_management import Word
 import re
+from collections import Counter
+
 from nltk.corpus import stopwords
 eng_stopwords = set(stopwords.words('english'))
 
@@ -36,4 +39,29 @@ def prep_definition_text(cleaned_definition: str, remove_stopwords: bool = True)
     Returns:
         set: A set of words in the definition text
     """
-    return set(cleaned_definition.split()) - eng_stopwords if remove_stopwords else set(cleaned_definition.split())
+    return set(cleaned_definition.lower().split()) - eng_stopwords if remove_stopwords else set(cleaned_definition.split())
+
+
+def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = True) -> Counter:
+    """Returns a Counter object representing the number of times each word in the definition text appears in the definition
+
+    Args:
+        cleaned_definition (str): A clean definition of the word. No unwanted parts or special characters
+        remove_stopwords (bool, optional): If true, then the function removes all stopwords. Defaults to True.
+
+    Returns:
+        Counter: A Counter object representing the number of times each word in the definition text appears in the definition
+    """
+    if remove_stopwords:
+        words = [word for word in cleaned_definition.lower().split()
+                 if word not in eng_stopwords]
+        return Counter(words)
+    else:
+        return Counter(cleaned_definition.lower().split())
+
+
+if __name__ == "__main__":
+    run = Word('run')
+    cleaned_run = basic_parser(run.full_definition)
+    print(prep_definition_text(cleaned_run))
+    print(definition_word_counter(cleaned_run))

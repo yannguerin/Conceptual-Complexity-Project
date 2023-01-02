@@ -1,7 +1,8 @@
 import spacy
 from motor import MotorClient
+from pymongo import MongoClient
 
-client = MotorClient()
+client = MongoClient()
 db = client.MerriamWebster
 collection = db.UpdatedMerriamWebsterDictionary
 
