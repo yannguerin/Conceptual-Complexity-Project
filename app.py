@@ -73,7 +73,7 @@ depth_slider = html.Div([
 )
 
 # Cytoscape Graph
-cyto_graph = html.Div(cyto.Cytoscape(
+cyto_graph = cyto.Cytoscape(
     id='cytoscape-graph',
     layout={'name': 'preset'},
     style={'width': '80%', 'height': '600px'},
@@ -81,6 +81,7 @@ cyto_graph = html.Div(cyto.Cytoscape(
     maxZoom=10,
     zoom=1,
     zoomingEnabled=True,
+    pan={"x": 500, "y": 0},
     elements=[
         {'data': {'id': 'one', 'label': 'Node 1'},
          'position': {'x': 75, 'y': 75}},
@@ -88,10 +89,13 @@ cyto_graph = html.Div(cyto.Cytoscape(
          'position': {'x': 200, 'y': 200}},
         {'data': {'source': 'one', 'target': 'two'}}
     ]
-),
-    className="h-100 p-5 text-white bg-dark rounded-3",
-    style={"margin": "5% 5% 5% 5%"}
 )
+
+cyto_component = html.Div(cyto_graph,
+                          className="h-100 p-5 text-white bg-dark rounded-3",
+                          style={"margin": "5% 5% 5% 5%"}
+                          )
+
 
 # Graph Info Components
 clicked_num_connected = html.Pre(
@@ -117,17 +121,6 @@ clicked_num_connected = html.Pre(
 #     }
 # ]
 
-# Layout
-app.layout = html.Div(
-    style={"backgroundColor": "#FFFFFF"},
-    children=[
-        navbar,
-        word_input,
-        depth_slider,
-        cyto_graph,
-        clicked_num_connected
-    ],
-)
 
 # Callbacks
 
@@ -152,8 +145,25 @@ def displayTapNodeData(data: dict):
 
 # On Panning
 
-# Setting all the layout Component
 
+@app.callback(Output("cytoscape-graph", 'pan'),
+              Input("depth-slider", 'value'))
+def displayPanPosition(value):
+    return {"x": value*10, "y": value*10}
+
+
+# Layout
+app.layout = html.Div(
+    style={"backgroundColor": "#FFFFFF"},
+    children=[
+        navbar,
+        word_input,
+        depth_slider,
+        cyto_component,
+        html.P("Positions", id="pan-pos"),
+        clicked_num_connected
+    ],
+)
 
 if __name__ == "__main__":
     app.run_server(debug=True)
