@@ -138,7 +138,7 @@ app.layout = html.Div(
 
 @app.callback(Output('chosen-depth-display', 'children'),
               Input('depth-slider', 'value'))
-def displayDepthOption(depth_value):
+def displayDepthOption(depth_value: int):
     return f"Chosen Depth of {depth_value}"
 
 # On clicking of node
@@ -146,7 +146,7 @@ def displayDepthOption(depth_value):
 
 @app.callback(Output('clicked-num-connected', 'children'),
               Input('cytoscape-graph', 'tapNode'))
-def displayTapNodeData(data):
+def displayTapNodeData(data: dict):
     if data:
         return json.dumps(data, indent=2)
 
