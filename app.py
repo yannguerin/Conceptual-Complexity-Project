@@ -60,6 +60,8 @@ word_input = html.Div(
 )
 # Depth Option
 depth_slider = html.Div([
+    html.H6("Pick the Recursive Depth of the Concept Graph",
+            style={"margin-left": "2%"}),
     dcc.Slider(0, 20, 5,
                value=10,
                id='my-slider'
@@ -69,9 +71,13 @@ depth_slider = html.Div([
 
 # Cytoscape Graph
 cyto_graph = html.Div(cyto.Cytoscape(
-    id='cytoscape-two-nodes',
+    id='cytoscape-graph',
     layout={'name': 'preset'},
-    style={'width': '100%', 'height': '600px'},
+    style={'width': '80%', 'height': '600px'},
+    minZoom=1,
+    maxZoom=10,
+    zoom=1,
+    zoomingEnabled=True,
     elements=[
         {'data': {'id': 'one', 'label': 'Node 1'},
          'position': {'x': 75, 'y': 75}},
@@ -80,32 +86,43 @@ cyto_graph = html.Div(cyto.Cytoscape(
         {'data': {'source': 'one', 'target': 'two'}}
     ]
 ),
-    # style={"margin-top": "100px"}
+    className="h-100 p-5 text-white bg-dark rounded-3",
+    style={"margin": "5% 5% 5% 5%"}
 )
 
+# Graph Info Components
+clicked_num_connected = html.Pre(
+    id='clicked-num-connected',
+    style={
+        'border': 'thin lightgrey solid',
+        'overflowX': 'scroll'
+    })
 
-default_stylesheet = [
-    {
-        "selector": "node",
-        "style": {
-            "width": "data(size)",
-            "height": "data(size)",
-            "background-color": "mapData(layer, 0, 3, white, blue)",
-            "content": "data(label)",
-            "font-size": "12px",
-            "text-valign": "center",
-            "text-halign": "center",
-        },
-    }
-]
 
+# default_stylesheet = [
+#     {
+#         "selector": "node",
+#         "style": {
+#             "width": "data(size)",
+#             "height": "data(size)",
+#             "background-color": "mapData(layer, 0, 3, white, blue)",
+#             "content": "data(label)",
+#             "font-size": "12px",
+#             "text-valign": "center",
+#             "text-halign": "center",
+#         },
+#     }
+# ]
+
+# Layout
 app.layout = html.Div(
-    style={"backgroundColor": "#4C4E52"},
+    style={"backgroundColor": "#FFFFFF"},
     children=[
         navbar,
         word_input,
         depth_slider,
-        cyto_graph
+        cyto_graph,
+        clicked_num_connected
     ],
 )
 
@@ -115,6 +132,7 @@ app.layout = html.Div(
 # For Word Search and Depth Option
 
 # On clicking of node
+
 
 # On Panning
 
