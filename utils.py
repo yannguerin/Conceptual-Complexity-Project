@@ -1,4 +1,3 @@
-from database_management import Word
 import re
 from collections import Counter
 
@@ -19,7 +18,7 @@ def basic_parser(full_definition: str) -> str:
     cleaned = re.findall(":.+\\n{1,1}", full_definition)
     cleaned = ''.join([definition.strip() for definition in cleaned])
     cleaned = re.sub(":|,|\.|\(|\)", "", cleaned).strip()
-    return cleaned
+    return cleaned.lower()
 
 
 def prep_definition_text(cleaned_definition: str, remove_stopwords: bool = True) -> set:
@@ -53,8 +52,8 @@ def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = Tr
         return Counter(cleaned_definition.lower().split())
 
 
-if __name__ == "__main__":
-    run = Word('run')
-    cleaned_run = basic_parser(run.full_definition)
-    print(prep_definition_text(cleaned_run))
-    print(definition_word_counter(cleaned_run))
+# if __name__ == "__main__":
+#     run = Word('run')
+#     cleaned_run = basic_parser(run.full_definition)
+#     print(prep_definition_text(cleaned_run))
+#     print(definition_word_counter(cleaned_run))

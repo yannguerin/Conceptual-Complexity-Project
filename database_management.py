@@ -1,8 +1,12 @@
-import spacy
-from motor import MotorClient
+from utils import prep_definition_text, basic_parser
 from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
+import spacy
+import asyncio
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-client = MongoClient()
+
+client = AsyncIOMotorClient()
 db = client.MerriamWebster
 collection = db.UpdatedMerriamWebsterDictionary
 
@@ -43,12 +47,20 @@ class Word:
             return None
 
 
-def get_single_word_data(word: str) -> dict:
-    pass
+async def async_get_word_data(word: str) -> dict:
+    word_data = await collection.find_one({'word': f"{word}\n"})
+    return word_data
 
 
-async def get_word_definition_definitions(word: Word) -> set:
-    pass
+async def get_word_definition_words(word_data: dict) -> set:
+    tasks = []
+    words_data_in_definition = []
+    words_in_definition = prep_definition_text(
+        basic_parser(word_data["dictionary_definitions"]))
+    for word in words_in_definition:
+        tasks.append(async_get_word_data(word))
+    words_data_in_definition = await asyncio.gather(*tasks)
+    return words_data_in_definition
 
 # Notes
 # A few different approaches I could use:
@@ -57,3 +69,28 @@ async def get_word_definition_definitions(word: Word) -> set:
 #       Similar to my cyto_app project from dash-playground
 #   Third: A combination of asynchronous and recursive
 #       Though, a loop with range set to depth may just perform the same task as a recursive function, plus would be easier to implement recursively
+
+# Code from WordsAPI Database Project
+
+
+async def async_store_word(db_collection, json_word: dict):
+    if isinstance(json_word, dict):
+        await db_collection.insert_one(json_word)
+    else:
+        raise TypeError("Word Value must be of type: dict")
+
+
+async def store_word_list(db_collection, list_of_word_dicts: list):
+    tasks = []
+    if isinstance(list_of_word_dicts, list):
+        for word in list_of_word_dicts:
+            tasks.append(async_store_word(db_collection, word))
+        await asyncio.gather(*tasks)
+
+
+async def main():
+    run = await async_get_word_data("run")
+    print(run)
+
+if __name__ == "__main__":
+    asyncio.run(main())
