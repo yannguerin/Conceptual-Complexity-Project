@@ -48,11 +48,27 @@ class Word:
 
 
 async def async_get_word_data(word: str) -> dict:
+    """Asynchronously get the data in MongoDB for Word
+
+    Args:
+        word (str): the word to get the data for
+
+    Returns:
+        dict: a dictionary of data for the word from MongoDB
+    """
     word_data = await collection.find_one({'word': f"{word}\n"})
     return word_data
 
 
-async def get_word_definition_words(word_data: dict) -> set:
+async def get_word_definition_words(word_data: dict) -> list:
+    """Takes a word dictionary data and gets all the word data dictionaries for all the words in its definition
+
+    Args:
+        word_data (dict): A word data dictionary from MongoDB which contains the full text definition of that word
+
+    Returns:
+        list: The list of word data for all words in the original words definition
+    """
     tasks = []
     words_data_in_definition = []
     words_in_definition = prep_definition_text(
@@ -61,6 +77,52 @@ async def get_word_definition_words(word_data: dict) -> set:
         tasks.append(async_get_word_data(word))
     words_data_in_definition = await asyncio.gather(*tasks)
     return words_data_in_definition
+
+# First Attempt
+
+
+async def recursive_hyponyms(depth: int, starting_word: str):
+    graph_list = []
+    layers_dict = {starting_word: 0}
+    starting_word_data = await async_get_word_data(starting_word)
+
+    async def entity_hyponyms(n: int, max_depth: int, word_data: dict):
+        if n < max_depth:
+            n += 1
+            async for definition_word_data in get_word_definition_words(word_data):
+                graph_list.append(
+                    (word_data["word"], definition_word_data["word"]))
+                layers_dict[definition_word_data["word"]] = n
+                entity_hyponyms(n, max_depth, definition_word_data)
+        return 0
+
+    entity_hyponyms(0, depth, starting_word_data)
+    return graph_list, layers_dict
+
+# Second Attempt
+
+
+async def recursive_word_data(depth: int, starting_word: str):
+    graph_list = []
+    layers_dict = {starting_word: 0}
+    starting_word_data = await async_get_word_data(starting_word)
+    tasks = []
+
+    async def entity_hyponyms(n: int, max_depth: int, word_data: dict):
+        if n < max_depth:
+            n += 1
+            async for definition_word_data in get_word_definition_words(word_data):
+                graph_list.append(
+                    (word_data["word"], definition_word_data["word"]))
+                layers_dict[definition_word_data["word"]] = n
+                tasks.append(entity_hyponyms(
+                    n, max_depth, definition_word_data))
+        return 0
+
+    tasks.insert(0, entity_hyponyms(0, depth, starting_word_data))
+    await asyncio.gather(*tasks)
+    return graph_list, layers_dict
+
 
 # Notes
 # A few different approaches I could use:
@@ -93,4 +155,4 @@ async def main():
     print(run)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(recursive_word_data(3, "run"))
