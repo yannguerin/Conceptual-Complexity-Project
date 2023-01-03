@@ -89,7 +89,8 @@ async def recursive_hyponyms(depth: int, starting_word: str):
     async def entity_hyponyms(n: int, max_depth: int, word_data: dict):
         if n < max_depth:
             n += 1
-            async for definition_word_data in get_word_definition_words(word_data):
+            words_in_definition = await get_word_definition_words(word_data)
+            for definition_word_data in words_in_definition:
                 graph_list.append(
                     (word_data["word"], definition_word_data["word"]))
                 layers_dict[definition_word_data["word"]] = n
@@ -111,7 +112,8 @@ async def recursive_word_data(depth: int, starting_word: str):
     async def entity_hyponyms(n: int, max_depth: int, word_data: dict):
         if n < max_depth:
             n += 1
-            async for definition_word_data in get_word_definition_words(word_data):
+            words_in_definition = await get_word_definition_words(word_data)
+            for definition_word_data in words_in_definition:
                 graph_list.append(
                     (word_data["word"], definition_word_data["word"]))
                 layers_dict[definition_word_data["word"]] = n
@@ -151,8 +153,8 @@ async def store_word_list(db_collection, list_of_word_dicts: list):
 
 
 async def main():
-    run = await async_get_word_data("run")
-    print(run)
+    graph, layers = await recursive_word_data(3, "run")
+    print(graph)
 
 if __name__ == "__main__":
-    asyncio.run(recursive_word_data(3, "run"))
+    asyncio.run(main())
