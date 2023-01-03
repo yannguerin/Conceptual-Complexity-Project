@@ -81,7 +81,7 @@ cyto_graph = cyto.Cytoscape(
     maxZoom=10,
     zoom=1,
     zoomingEnabled=True,
-    pan={"x": 500, "y": 0},
+    pan={"x": 100, "y": 0},
     elements=[
         {'data': {'id': 'one', 'label': 'Node 1'},
          'position': {'x': 75, 'y': 75}},
@@ -92,7 +92,7 @@ cyto_graph = cyto.Cytoscape(
 )
 
 cyto_component = html.Div(cyto_graph,
-                          className="h-100 p-5 text-white bg-dark rounded-3",
+                          className="bg-dark rounded-3",
                           style={"margin": "5% 5% 5% 5%"}
                           )
 
