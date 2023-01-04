@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from motor.motor_asyncio import AsyncIOMotorClient
 import spacy
 import asyncio
+import time
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
@@ -112,8 +113,8 @@ async def get_word_data(depth: int, starting_word: str):
     tasks = []
 
     async def recursive_word_data(n: int, max_depth: int, word_data: dict):
-        print(
-            f"Current Depth: {n}, until Max Depth {max_depth} for Word: {word_data['word']}")
+        # print(
+        #     f"Current Depth: {n}, until Max Depth {max_depth} for Word: {word_data['word']}")
         if n < max_depth and word_data:
             n += 1
             words_in_definition = await get_word_definition_words(word_data)
@@ -122,7 +123,7 @@ async def get_word_data(depth: int, starting_word: str):
                     graph_list.append(
                         (word_data["word"], definition_word_data["word"]))
                     layers_dict[definition_word_data["word"]] = n
-                    word_task = asyncio.create_task(recursive_word_data(
+                    word_task = await asyncio.create_task(recursive_word_data(
                         n, max_depth, definition_word_data))
                     tasks.append(word_task)
     initial_word_task = asyncio.create_task(
@@ -159,8 +160,10 @@ async def store_word_list(db_collection, list_of_word_dicts: list):
 
 
 async def main():
-    graph, layers = await get_word_data(3, "run")
+    graph, layers = await get_word_data(3, "astronomical")
     print(len(graph))
 
 if __name__ == "__main__":
+    start = time.time()
     asyncio.run(main())
+    print(time.time() - start)

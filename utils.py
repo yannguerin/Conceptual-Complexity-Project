@@ -31,7 +31,7 @@ def prep_definition_text(cleaned_definition: str, remove_stopwords: bool = True)
     Returns:
         set: A set of words in the definition text
     """
-    return set(cleaned_definition.lower().split()) - eng_stopwords if remove_stopwords else set(cleaned_definition.split())
+    return set(cleaned_definition.split()) - eng_stopwords if remove_stopwords else set(cleaned_definition.split())
 
 
 def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = True) -> Counter:
