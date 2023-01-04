@@ -71,11 +71,13 @@ async def get_word_definition_words(word_data: dict) -> list:
     """
     tasks = []
     words_data_in_definition = []
-    words_in_definition = prep_definition_text(
-        basic_parser(word_data["dictionary_definitions"]))
-    for word in words_in_definition:
-        tasks.append(async_get_word_data(word))
-    words_data_in_definition = await asyncio.gather(*tasks)
+    definition_text = word_data["dictionary_definitions"]
+    if definition_text:
+        words_in_definition = prep_definition_text(
+            basic_parser(word_data["dictionary_definitions"]))
+        for word in words_in_definition:
+            tasks.append(async_get_word_data(word))
+        words_data_in_definition = await asyncio.gather(*tasks)
     return words_data_in_definition
 
 # First Attempt
@@ -103,25 +105,29 @@ async def recursive_hyponyms(depth: int, starting_word: str):
 # Second Attempt
 
 
-async def recursive_word_data(depth: int, starting_word: str):
+async def get_word_data(depth: int, starting_word: str):
     graph_list = []
     layers_dict = {starting_word: 0}
     starting_word_data = await async_get_word_data(starting_word)
     tasks = []
 
-    async def entity_hyponyms(n: int, max_depth: int, word_data: dict):
-        if n < max_depth:
+    async def recursive_word_data(n: int, max_depth: int, word_data: dict):
+        print(
+            f"Current Depth: {n}, until Max Depth {max_depth} for Word: {word_data['word']}")
+        if n < max_depth and word_data:
             n += 1
             words_in_definition = await get_word_definition_words(word_data)
             for definition_word_data in words_in_definition:
-                graph_list.append(
-                    (word_data["word"], definition_word_data["word"]))
-                layers_dict[definition_word_data["word"]] = n
-                tasks.append(entity_hyponyms(
-                    n, max_depth, definition_word_data))
-        return 0
-
-    tasks.insert(0, entity_hyponyms(0, depth, starting_word_data))
+                if definition_word_data:
+                    graph_list.append(
+                        (word_data["word"], definition_word_data["word"]))
+                    layers_dict[definition_word_data["word"]] = n
+                    word_task = asyncio.create_task(recursive_word_data(
+                        n, max_depth, definition_word_data))
+                    tasks.append(word_task)
+    initial_word_task = asyncio.create_task(
+        recursive_word_data(0, depth, starting_word_data))
+    tasks.insert(0, initial_word_task)
     await asyncio.gather(*tasks)
     return graph_list, layers_dict
 
@@ -153,8 +159,8 @@ async def store_word_list(db_collection, list_of_word_dicts: list):
 
 
 async def main():
-    graph, layers = await recursive_word_data(3, "run")
-    print(graph)
+    graph, layers = await get_word_data(3, "run")
+    print(len(graph))
 
 if __name__ == "__main__":
     asyncio.run(main())
