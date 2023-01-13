@@ -15,9 +15,11 @@ def basic_parser(full_definition: str) -> str:
         str: a basic parsed string, removes the tags for splitting definitions as well as some special characters
     """
     cleaned = ""
-    cleaned = re.findall(":.+\\n{1,1}", full_definition)
+    cleaned = re.findall(":.+\\n", full_definition)
     cleaned = ''.join([definition.strip() for definition in cleaned])
-    cleaned = re.sub(":|,|\.|\(|\)", "", cleaned).strip()
+    # cleaned = re.sub(":|,|\.|\(|\)", "", cleaned).strip()
+    cleaned = cleaned.replace(':', '').replace(',', '').replace(
+        '.', '').replace('(', '').replace(')', '').strip()
     return cleaned.lower()
 
 
@@ -57,3 +59,7 @@ def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = Tr
 #     cleaned_run = basic_parser(run.full_definition)
 #     print(prep_definition_text(cleaned_run))
 #     print(definition_word_counter(cleaned_run))
+
+
+if __name__ == "__main__":
+    print(eng_stopwords)
