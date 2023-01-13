@@ -75,7 +75,7 @@ async def get_word_definition_words(word_data: dict) -> list:
     definition_text = word_data["dictionary_definitions"]
     if definition_text:
         words_in_definition = prep_definition_text(
-            basic_parser(word_data["dictionary_definitions"]))
+            basic_parser(definition_text))
         for word in words_in_definition:
             tasks.append(async_get_word_data(word))
         words_data_in_definition = await asyncio.gather(*tasks)
@@ -111,21 +111,36 @@ async def get_word_data(depth: int, starting_word: str):
     layers_dict = {starting_word: 0}
     starting_word_data = await async_get_word_data(starting_word)
     tasks = []
+    done_words = []
 
     async def recursive_word_data(n: int, max_depth: int, word_data: dict):
         # print(
         #     f"Current Depth: {n}, until Max Depth {max_depth} for Word: {word_data['word']}")
+        # Stopping Condition and making sure the word data is not falsy
         if n < max_depth and word_data:
             n += 1
+            # Getting Words in the definition and their word data
             words_in_definition = await get_word_definition_words(word_data)
+            # Looping through those word definitions to call this function again
             for definition_word_data in words_in_definition:
                 if definition_word_data:
-                    graph_list.append(
-                        (word_data["word"], definition_word_data["word"]))
-                    layers_dict[definition_word_data["word"]] = n
-                    word_task = await asyncio.create_task(recursive_word_data(
-                        n, max_depth, definition_word_data))
-                    tasks.append(word_task)
+                    next_word = definition_word_data["word"]
+                    # Making sure the word data has not already been acquired
+                    if next_word not in done_words:
+                        # Add the graph data
+                        graph_list.append(
+                            (word_data["word"], next_word))
+                        # Add the layer/recursive depth data for coloring the graph
+                        layers_dict[next_word] = n
+                        # Creating the next call for this word
+                        word_task = await asyncio.create_task(recursive_word_data(
+                            n, max_depth, definition_word_data))
+                        tasks.append(word_task)
+                        done_words.append(next_word)
+                    else:
+                        # Should add the appending of the data, but, retrieved from the already acquired data
+                        # To the graph_list and layers_dict
+                        pass
     initial_word_task = asyncio.create_task(
         recursive_word_data(0, depth, starting_word_data))
     tasks.insert(0, initial_word_task)
@@ -160,8 +175,9 @@ async def store_word_list(db_collection, list_of_word_dicts: list):
 
 
 async def main():
-    graph, layers = await get_word_data(3, "astronomical")
+    graph, layers = await get_word_data(3, "propensity")
     print(len(graph))
+    print(graph)
 
 if __name__ == "__main__":
     start = time.time()
