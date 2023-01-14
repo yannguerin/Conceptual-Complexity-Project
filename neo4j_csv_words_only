@@ -1,0 +1,71 @@
+import time
+import csv
+from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
+from utils import definition_word_counter, basic_parser
+from collections import Counter
+import asyncio
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+async def find_and_prep_async(word: str) -> Counter:
+    definition = ""
+    word_document = await collection.find_one({"word": word.capitalize()})
+    try:
+        definition = word_document["dictionary_definitions"]
+        # print(definition)
+    except:
+        # print(word)
+        return None
+    if not definition:
+        return None
+    cleaned_definition = basic_parser(definition)
+    if not cleaned_definition:
+        print(definition)
+    definition_counter = definition_word_counter(
+        cleaned_definition, remove_stopwords=False)
+    return definition_counter
+
+
+async def prep_rows_async(word: str) -> list[list]:
+    rows = []
+    definition_counter = await find_and_prep_async(word)
+    if definition_counter:
+        rows = [[word.strip(), sub_word, count]
+                for sub_word, count in definition_counter.items()]
+        return rows
+    else:
+        print(word.strip(), definition_counter)
+        return str(word)
+
+
+async def make_tasks(words: list[str]):
+    list_of_rows = []
+    tasks = []
+    for word in words:
+        rows_to_write = asyncio.create_task(prep_rows_async(word))
+        tasks.append(rows_to_write)
+    list_of_rows = await asyncio.gather(*tasks)
+    return list_of_rows
+
+
+async def main(words: list[str]):
+    all_rows = await make_tasks(words)
+    return all_rows
+
+if __name__ == "__main__":
+    start = time.time()
+    with open("words_to_lemmatize_sample.txt", "r+", encoding="utf-16") as f:
+        words = f.readlines()
+
+    client = AsyncIOMotorClient()
+    db = client.MerriamWebster
+    collection = db.UpdatedMerriamWebsterDictionary
+    all_rows = asyncio.run(main(words))
+    print(all_rows)
+    # non_null_rows = [row for row in all_rows if isinstance(row, list)]
+    words_to_lemmatize = [
+        row for row in all_rows if isinstance(row, str) or row == []]
+    with open("words_to_lemmatize_sample2.txt", "w+", encoding="utf-16") as f:
+        f.writelines(words_to_lemmatize)
+    print(time.time() - start)
