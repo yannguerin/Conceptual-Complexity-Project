@@ -65,4 +65,4 @@ def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = Tr
 
 
 if __name__ == "__main__":
-    print(eng_stopwords)
+    pass
