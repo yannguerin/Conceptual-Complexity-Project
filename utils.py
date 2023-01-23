@@ -19,10 +19,10 @@ def basic_parser(full_definition: str) -> str:
     cleaned = ''.join([definition.strip() for definition in cleaned])
     # cleaned = re.sub(":|,|\.|\(|\)", "", cleaned).strip()
     cleaned = cleaned.replace(':', '').replace(',', '').replace(
-        '.', '').replace('(', '').replace(')', '').strip()
+        '.', '').replace('(', '').replace(')', '').replace(';', '').strip()
     if not cleaned:
         cleaned = full_definition.replace(':', '').replace(',', '').replace(
-            '.', '').replace('(', '').replace(')', '').strip()
+            '.', '').replace('(', '').replace(')', '').replace(';', '').strip()
     return cleaned.lower()
 
 
