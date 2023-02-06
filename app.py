@@ -1,5 +1,6 @@
 from collections import Counter
 import json
+import time
 
 import numpy as np
 import pandas as pd
@@ -13,25 +14,22 @@ import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 from dash import html, Input, Output
 
+from neo4j_manager import Neo4jHTTPManager
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-# NetworkX Multipartite Graph to Dash Cytoscape
+# Database Loading Callback
+# Using the Initial Call
 
 
-def nx_to_cyto(G, pos):
-    cyto_data = nx.cytoscape_data(G)["elements"]
-    cyto_nodes = cyto_data["nodes"]
-    cyto_edges = cyto_data["edges"]
-    for index, node in enumerate(cyto_nodes):
-        node_name = node["data"]["name"]
-        cyto_nodes[index]["data"]["label"] = cyto_nodes[index]["data"].pop(
-            "value")
-        cyto_nodes[index]["data"]["size"] = 1
-        cyto_nodes[index]["position"] = {
-            "x": pos[node_name][0] * 25,
-            "y": pos[node_name][1] * 1000000,
-        }
-    return cyto_nodes, cyto_edges
+# @app.callback(Output("database-loading", 'children'),
+#               Input("depth-slider", "value"))
+# def database_init(value):
+#     if value:
+#         global database
+#         database = Neo4jHTTPManager()
+#         return ""
+
 
 # Layout Components
 
@@ -53,7 +51,7 @@ navbar = dbc.NavbarSimple(
 # Word Search
 word_input = html.Div(
     [
-        dbc.Input(id="word_input", placeholder="Search for Word", type="text"),
+        dbc.Input(id="word-input", placeholder="Search for Word", type="text"),
         html.Br(),
         html.P(id="output"),
     ],
@@ -63,32 +61,42 @@ word_input = html.Div(
 depth_slider = html.Div([
     html.H6("Pick the Recursive Depth of the Concept Graph",
             style={"margin-left": "2%"}),
-    dcc.Slider(0, 20, 1,
-               value=10,
+    dcc.Slider(1, 3, 1,
+               value=2,
                id='depth-slider'
                ),
-    dbc.Badge("Chosen Depth of 10", color="info", id='chosen-depth-display')
+    dbc.Badge("Chosen Depth of 2", color="info", id='chosen-depth-display')
 ],
     style={"margin": "2% 10% 2% 10%"}
 )
 
+# Generate Button
+
+button_generate = html.Button('Generate Graph', id='generate', n_clicks=0)
+
 # Cytoscape Graph
 cyto_graph = cyto.Cytoscape(
     id='cytoscape-graph',
-    layout={'name': 'preset'},
     style={'width': '80%', 'height': '600px'},
-    minZoom=1,
+    minZoom=0.05,
     maxZoom=10,
     zoom=1,
     zoomingEnabled=True,
     pan={"x": 100, "y": 0},
-    elements=[
-        {'data': {'id': 'one', 'label': 'Node 1'},
-         'position': {'x': 75, 'y': 75}},
-        {'data': {'id': 'two', 'label': 'Node 2'},
-         'position': {'x': 200, 'y': 200}},
-        {'data': {'source': 'one', 'target': 'two'}}
-    ]
+    elements=[],
+    layout={
+        "name": "breadthfirst",
+        "roots": "[id = 'defenestration']"
+    },
+    # stylesheet=[
+    #     {
+    #         'selector': 'node',
+    #         'style': {
+    #             'width': 10,
+    #             'height': 10
+    #         }
+    #     }
+    # ]
 )
 
 cyto_component = html.Div(cyto_graph,
@@ -151,6 +159,44 @@ def displayTapNodeData(data: dict):
 def displayPanPosition(value):
     return {"x": value*10, "y": value*10}
 
+# On Generate
+
+
+@app.callback(Output("cytoscape-graph", 'elements'),
+              Input("generate", 'n_clicks'),
+              Input("word-input", "value"),
+              Input("depth-slider", 'value'))
+def displayPanPosition(n_clicks, word_value, depth_value):
+    # Cytoscape Element Generation
+    if n_clicks > 0 and word_value and depth_value:
+        database = Neo4jHTTPManager()
+        initial_value = word_value.strip()
+        word_data = set(database.get_word_data(
+            initial_value, depth_value)[::-1])
+
+        # Nodes
+        nodes = [initial_value]
+        for word_tuple in word_data:
+            nodes.append(word_tuple[1])
+
+        cyto_nodes = [
+            {
+                'data': {'id': word, 'label': word}
+            }
+            for word in set(nodes)
+        ]
+
+        # Edges
+        cyto_edges = [
+            {'data': {'source': source, 'target': target}}
+            for source, target in word_data
+        ]
+
+        elements = cyto_nodes + cyto_edges
+        return elements
+    else:
+        return []
+
 
 # Layout
 app.layout = html.Div(
@@ -159,7 +205,9 @@ app.layout = html.Div(
         navbar,
         word_input,
         depth_slider,
+        button_generate,
         cyto_component,
+        html.P("Database Connection", id='database-loading'),
         html.P("Positions", id="pan-pos"),
         clicked_num_connected
     ],
