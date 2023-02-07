@@ -74,6 +74,11 @@ depth_slider = html.Div([
 
 button_generate = html.Button('Generate Graph', id='generate', n_clicks=0)
 
+# Graph Layout Options
+layout_options = ['concentric', 'breadthfirst', 'circle', 'random']
+graph_layout_options = dcc.Dropdown(
+    layout_options, 'breadthfirst', id='graph-layout-options')
+
 # Cytoscape Graph
 cyto_graph = cyto.Cytoscape(
     id='cytoscape-graph',
@@ -86,17 +91,25 @@ cyto_graph = cyto.Cytoscape(
     elements=[],
     layout={
         "name": "breadthfirst",
-        "roots": "[id = 'defenestration']"
+        "roots": "[id = 'defenestration']",
+        # "circle": "false"
     },
-    # stylesheet=[
-    #     {
-    #         'selector': 'node',
-    #         'style': {
-    #             'width': 10,
-    #             'height': 10
-    #         }
-    #     }
-    # ]
+    stylesheet=[
+        {
+            'selector': 'edge',
+            'style': {
+                'width': 0.1,
+                'mid-target-arrow-shape': 'triangle',
+                'arrow-scale': 1
+            }
+        },
+        {
+            'selector': 'node',
+            'style': {
+                'label': 'data(label)'
+            }
+        }
+    ]
 )
 
 cyto_component = html.Div(cyto_graph,
@@ -166,7 +179,7 @@ def displayPanPosition(value):
               Input("generate", 'n_clicks'),
               Input("word-input", "value"),
               Input("depth-slider", 'value'))
-def displayPanPosition(n_clicks, word_value, depth_value):
+def generateGraph(n_clicks, word_value, depth_value):
     # Cytoscape Element Generation
     if n_clicks > 0 and word_value and depth_value:
         database = Neo4jHTTPManager()
@@ -198,6 +211,34 @@ def displayPanPosition(n_clicks, word_value, depth_value):
         return []
 
 
+@app.callback(Input("cytoscape-graph", 'elements'),
+              Input("graph-layout-options", 'value'))
+def shiftPositions(elements, layout_option):
+    if layout_option == "breadthfirst" and elements != []:
+        pass
+
+
+# Graph Layout Picker
+
+
+@app.callback(Output("cytoscape-graph", 'layout'),
+              Input("graph-layout-options", 'value'),
+              Input('word-input', 'value'),
+              Input('cytoscape-graph', 'layout'))
+def graph_layout_pick(layout_option, word_value, layout):
+    if layout_option and word_value:
+        new_layout = layout
+        new_layout['name'] = layout_option
+        if layout_option == "breadthfirst":
+            new_layout['roots'] = f"[id = '{word_value}']"
+            new_layout['avoidOverlap'] = 'true'
+        elif layout_option == "concentric":
+            new_layout['nodeDimensionsIncludeLabels'] = 'true'
+        return new_layout
+    else:
+        return layout
+
+
 # Layout
 app.layout = html.Div(
     style={"backgroundColor": "#FFFFFF"},
@@ -205,6 +246,7 @@ app.layout = html.Div(
         navbar,
         word_input,
         depth_slider,
+        graph_layout_options,
         button_generate,
         cyto_component,
         html.P("Database Connection", id='database-loading'),
