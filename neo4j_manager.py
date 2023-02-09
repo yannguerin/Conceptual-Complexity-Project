@@ -64,6 +64,9 @@ class Neo4jHTTPManager:
     def spec_word_rows(self, spec_response):
         return [(data.row[0][-3]['value'], data.row[0][-1]['value']) for data in spec_response.results[0].data]
 
+    def spec_word_rows_with_length(self, spec_response):
+        return [(data.row[0][-3]['value'], data.row[0][-1]['value'], (len(data.row[0]) / 2 + 0.5)) for data in spec_response.results[0].data]
+
     def get_word_paths_raw(self, value, path_length):
         # Define the Neo4j query
         query = {
