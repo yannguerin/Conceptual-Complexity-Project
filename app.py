@@ -158,11 +158,11 @@ def displayDepthOption(depth_value: int):
 # On clicking of node
 
 
-@app.callback(Output('clicked-num-connected', 'children'),
-              Input('cytoscape-graph', 'tapNode'))
-def displayTapNodeData(data: dict):
-    if data:
-        return json.dumps(data, indent=2)
+# @app.callback(Output('clicked-num-connected', 'children'),
+#               Input('cytoscape-graph', 'tapNode'))
+# def displayTapNodeData(data: dict):
+#     if data:
+#         return json.dumps(data, indent=2)
 
 # On Panning
 
@@ -211,12 +211,17 @@ def generateGraph(n_clicks, word_value, depth_value):
         return []
 
 
-@app.callback(Input("cytoscape-graph", 'elements'),
-              Input("graph-layout-options", 'value'))
-def shiftPositions(elements, layout_option):
-    if layout_option == "breadthfirst" and elements != []:
-        pass
+# @app.callback(Input("cytoscape-graph", 'elements'),
+#               Input("graph-layout-options", 'value'))
+# def shiftPositions(elements, layout_option):
+#     if layout_option == "breadthfirst" and elements != []:
+#         pass
 
+# BreadthFirst Layout Shifter
+
+def shiftPositions(elem, i):
+    elem.position = {'x': (
+        elem.position['x'] - elem.position['x'] // 4), 'y': (elem.position['y'] - 20)}
 
 # Graph Layout Picker
 
@@ -232,6 +237,8 @@ def graph_layout_pick(layout_option, word_value, layout):
         if layout_option == "breadthfirst":
             new_layout['roots'] = f"[id = '{word_value}']"
             new_layout['avoidOverlap'] = 'true'
+            # Add position shifting
+            # nodes.positions(shiftPositions)
         elif layout_option == "concentric":
             new_layout['nodeDimensionsIncludeLabels'] = 'true'
         return new_layout
