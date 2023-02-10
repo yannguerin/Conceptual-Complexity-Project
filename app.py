@@ -15,6 +15,7 @@ from dash import html, Input, Output, dcc
 
 from neo4j_manager import Neo4jHTTPManager
 from components import *
+from utils import complexity_index
 
 from nltk.corpus import stopwords
 eng_stopwords = set(stopwords.words('english'))
@@ -60,7 +61,7 @@ def displayTapNodeData(data: dict):
         } for edge in data["edgesData"]]
         current_style.extend(new_edge_style)
         current_style.extend(new_node_style)
-        return json.dumps(data, indent=2), current_style
+        return json.dumps(len(data), indent=2), current_style
     else:
         return "", default_style
 
@@ -151,6 +152,18 @@ def graph_layout_pick(layout_option, word_value, layout, depth):
         return layout
 
 
+@app.callback(Output("complexity-index-output", 'children'),
+              Input("submit-text-complexity", 'n_clicks'),
+              Input('complexity-text-input', 'value'))
+def graph_layout_pick(n_clicks: int, text: str):
+    df = pd.read_csv("./data/word_complexity_index.csv")
+    if n_clicks > 0:
+        complexity_index_value = complexity_index(df, text)
+        return "Complexity Index: " + str(complexity_index_value)
+    else:
+        return "Complexity Index"
+
+
 # default_stylesheet = [
 #     {
 #         "selector": "node",
@@ -178,7 +191,8 @@ app.layout = html.Div(
         cyto_component,
         html.P("Database Connection", id='database-loading'),
         html.P("Positions", id="pan-pos"),
-        clicked_num_connected
+        clicked_num_connected,
+        complexity_calculations
     ],
 )
 
