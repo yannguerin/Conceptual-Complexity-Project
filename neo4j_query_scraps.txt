@@ -1,0 +1,22 @@
+LOAD CSV WITH HEADERS FROM 'file:///word_nodes.csv' AS row WITH row MERGE (w:Word {value:row.word}) RETURN *;
+
+Variable Path Query that Returns a Path dict
+MATCH p = (w:Word {value:"defenestration"})-[:HAS_WORD*1..2]->(wd:Word) RETURN p;
+
+For Finding paths of all lengths between two words 
+MATCH p=(start:Word)-[:HAS_WORD*1..3]->(end:Word)
+WHERE id(start) = 265787 AND id(end) = 207298
+RETURN p
+ORDER BY length(p) DESC
+
+A modified version of the query above
+MATCH p=(start:Word)-[:HAS_WORD*1..3]->(end:Word)
+WHERE start.value = "defenestration" AND end.value = "star"
+RETURN p
+ORDER BY length(p) DESC
+
+# All Shortest Paths up to a certain Depth
+MATCH (w:Word {value: 'defenestration'}) MATCH (w2:Word {value: 'arcane'}), p = allShortestPaths((w)-[:HAS_WORD*1..5]-(w2)) RETURN p;  
+
+# Find all words that contain defenestration in their definition
+MATCH (w:Word)-[:HAS_WORD]->(:Word {value:"defenestration"}) RETURN w.value
