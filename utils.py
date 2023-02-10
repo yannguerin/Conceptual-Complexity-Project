@@ -57,6 +57,19 @@ def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = Tr
         return Counter(cleaned_definition.lower().split())
 
 
+def complexity_index(df, text: str):
+    index = 0
+    count = 0
+    for word in text.split():
+        try:
+            index += float(df.frequency[df.word == word])
+            count += 1
+        except TypeError:
+            print(word)
+
+    return index / count if count != 0 else "Error, Attempted Division by Zero"
+
+
 # if __name__ == "__main__":
 #     run = Word('run')
 #     cleaned_run = basic_parser(run.full_definition)
