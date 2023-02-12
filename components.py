@@ -121,3 +121,18 @@ complexity_calculations = html.Div([
                 n_clicks=0, style={'margin-left': '10%'}),
     complexity_index_output
 ])
+
+# default_stylesheet = [
+#     {
+#         "selector": "node",
+#         "style": {
+#             "width": "data(size)",
+#             "height": "data(size)",
+#             "background-color": "mapData(layer, 0, 3, white, blue)",
+#             "content": "data(label)",
+#             "font-size": "12px",
+#             "text-valign": "center",
+#             "text-halign": "center",
+#         },
+#     }
+# ]
