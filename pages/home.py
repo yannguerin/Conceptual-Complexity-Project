@@ -21,7 +21,7 @@ dash.register_page(__name__, path='/')
 
 @dash.callback(Output('chosen-depth-display', 'children'),
                Input('depth-slider', 'value'))
-def displayDepthOption(depth_value: int):
+def displayDepthOption(depth_value: int) -> str:
     return f"Chosen Depth of {depth_value}"
 
 # On clicking of node
@@ -30,7 +30,7 @@ def displayDepthOption(depth_value: int):
 @dash.callback(Output('clicked-num-connected', 'children'),
                Output('cytoscape-graph', 'stylesheet'),
                Input('cytoscape-graph', 'tapNode'))
-def displayTapNodeData(data: dict):
+def displayTapNodeData(data: dict) -> tuple[str, dict]:
     current_style = default_style
     if data:
         new_edge_style = [{
@@ -60,7 +60,7 @@ def displayTapNodeData(data: dict):
 
 @dash.callback(Output("cytoscape-graph", 'pan'),
                Input("depth-slider", 'value'))
-def displayPanPosition(value):
+def displayPanPosition(value: int) -> dict:
     return {"x": value*10, "y": value*10}
 
 # On Generate
@@ -71,7 +71,7 @@ def displayPanPosition(value):
                Input("word-input", "value"),
                Input("depth-slider", 'value'),
                Input('include-stopwords', 'value'))
-def generateGraph(n_clicks, word_value, depth_value, include_stopwords):
+def generateGraph(n_clicks: int, word_value: str, depth_value: int, include_stopwords: bool) -> list:
     # Cytoscape Element Generation
     if n_clicks > 0 and word_value and depth_value:
         database = Neo4jHTTPManager()
@@ -124,7 +124,7 @@ def generateGraph(n_clicks, word_value, depth_value, include_stopwords):
                Input('word-input', 'value'),
                Input('cytoscape-graph', 'layout'),
                Input('depth-slider', 'value'))
-def graph_layout_pick(layout_option, word_value, layout, depth):
+def graph_layout_pick(layout_option: str, word_value: str, layout: dict, depth: int) -> dict:
     if layout_option and word_value:
         new_layout = layout
         new_layout['name'] = layout_option

@@ -14,13 +14,16 @@ dash.register_page(__name__, path='/Complexity-Index')
 @dash.callback(Output("complexity-index-output", 'children'),
                Input("submit-text-complexity", 'n_clicks'),
                Input('complexity-text-input', 'value'))
-def complexity_index_calculator(n_clicks: int, text: str):
+def complexity_index_calculator(n_clicks: int, text: str) -> str:
     df = read_csv("./data/word_complexity_index.csv")
     if n_clicks > 0:
         complexity_index_value = complexity_index(df, text)
         return "Complexity Index: " + str(complexity_index_value)
     else:
-        return "Complexity Index"
+        return "Complexity Index:"
 
 
-layout = complexity_calculations
+layout = html.Div([
+    html.H1("Text Complexity Calculator", id='center'),
+    complexity_calculations
+])

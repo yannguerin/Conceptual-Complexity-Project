@@ -35,7 +35,7 @@ class Neo4jDriverManager:
     def get_word_result(self, word: str) -> list[tuple[str, str]]:
         sub_start = time.time()
         result = self.tx.run(
-            "MATCH (w:Word) USING TEXT INDEX w:Word(value) WHERE w.value = 'defenestration' MATCH p = (w)-[:HAS_WORD*1..3]->(:Word) RETURN p;")
+            f"MATCH (w:Word) USING TEXT INDEX w:Word(value) WHERE w.value = '{word}' MATCH p = (w)-[:HAS_WORD*1..3]->(:Word) RETURN p;")
         print(time.time() - sub_start)
         word_result = [record for record in result]
         graph_tuples = self.parse_records(word_result)
@@ -61,13 +61,13 @@ class Neo4jHTTPManager:
         }
         self.endpoint = "http://localhost:7474/db/data/transaction/commit"
 
-    def spec_word_rows(self, spec_response):
+    def spec_word_rows(self, spec_response: bytes) -> list[tuple[str, str]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value']) for data in spec_response.results[0].data]
 
-    def spec_word_rows_with_length(self, spec_response):
+    def spec_word_rows_with_length(self, spec_response: bytes) -> list[tuple[str, str, int]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value'], (len(data.row[0]) / 2 + 0.5)) for data in spec_response.results[0].data]
 
-    def get_word_paths_raw(self, value, path_length):
+    def get_word_paths_raw(self, value: str, path_length: int) -> bytes:
         # Define the Neo4j query
         query = {
             "statements": [
@@ -83,7 +83,7 @@ class Neo4jHTTPManager:
             self.endpoint, json=query, headers=self.headers)
         return response.content
 
-    def get_word_data(self, value, path_length):
+    def get_word_data(self, value: str, path_length: int) -> list[tuple[str, str]]:
         word_path = self.get_word_paths_raw(value, path_length)
         raw_data = decode(word_path, type=Result)
         return self.spec_word_rows(raw_data)
