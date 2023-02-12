@@ -105,3 +105,19 @@ clicked_num_connected = html.Pre(
         'border': 'thin lightgrey solid',
         'overflowX': 'scroll'
     })
+
+
+# ### TEXT COMPLEXITY INDEX COMPONENTS
+
+text_area_input = dcc.Textarea(id='complexity-text-input', value='Input Text to calculate the complexity of',
+                               style={'width': '80%', 'height': 300, 'margin': '2% 10% 2% 10%'})
+
+complexity_index_output = html.H4(
+    "Complexity Index", id='complexity-index-output', style={'margin-left': '10%'})
+
+complexity_calculations = html.Div([
+    text_area_input,
+    html.Button('Submit', id='submit-text-complexity',
+                n_clicks=0, style={'margin-left': '10%'}),
+    complexity_index_output
+])
