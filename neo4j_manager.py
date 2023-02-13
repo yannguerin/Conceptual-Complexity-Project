@@ -1,6 +1,7 @@
 import time
 import logging
 import base64
+from itertools import pairwise, chain
 
 import requests
 from neo4j import GraphDatabase
@@ -64,6 +65,9 @@ class Neo4jHTTPManager:
     def spec_word_rows(self, spec_response: bytes) -> list[tuple[str, str]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value']) for data in spec_response.results[0].data]
 
+    def get_word_rows(self, spec_response: bytes) -> set[tuple[str, str]]:
+        return set(chain.from_iterable([tuple(pairwise([d['value'] for d in data.row[0] if d])) for data in spec_response.results[0].data]))
+
     def spec_word_rows_with_length(self, spec_response: bytes) -> list[tuple[str, str, int]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value'], (len(data.row[0]) / 2 + 0.5)) for data in spec_response.results[0].data]
 
@@ -83,10 +87,32 @@ class Neo4jHTTPManager:
             self.endpoint, json=query, headers=self.headers)
         return response.content
 
+    def get_two_word_paths_raw(self, first_word: str, second_word: str, max_path_length: int) -> dict:
+        # Define the Neo4j query
+        query = {
+            "statements": [
+                {
+                    "statement": f"MATCH p=(start:Word)-[:HAS_WORD*1..{max_path_length}]->(end:Word) WHERE start.value = '{first_word}' AND end.value = '{second_word}' RETURN p ORDER BY length(p) ASC",
+                    "resultDataContents": ["row"]
+                }
+            ]
+        }
+
+        # Send the request to the Neo4j endpoint
+        response = self.session.post(
+            self.endpoint, json=query, headers=self.headers)
+        return response.content
+
     def get_word_data(self, value: str, path_length: int) -> list[tuple[str, str]]:
         word_path = self.get_word_paths_raw(value, path_length)
         raw_data = decode(word_path, type=Result)
         return self.spec_word_rows(raw_data)
+
+    def get_two_word_data(self, first_word: str, second_word: str, path_length: int) -> list[tuple[str, str]]:
+        word_path = self.get_two_word_paths_raw(
+            first_word, second_word, path_length)
+        raw_data = decode(word_path, type=Result)
+        return self.get_word_rows(raw_data)
 
 
 if __name__ == "__main__":
