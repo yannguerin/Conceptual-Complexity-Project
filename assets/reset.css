@@ -2,6 +2,45 @@ body {
     background-color: #FFFFFF;
 }
 
-h1 {
+h1,
+h2,
+h3 {
     text-align: center;
+}
+
+#word-input-two-word-left {
+    margin: 0 auto;
+    float: left;
+    width: 50%;
+}
+
+#word-input-two-word-right {
+    margin: 0 auto;
+    float: right;
+    width: 50%;
+}
+
+#two-word-input-div {
+    margin: 2% 10% 2% 10%;
+    text-align: center;
+}
+
+#graph-layout-options-two-word {
+    margin: 2% 10% 2% 10%;
+}
+
+#graph-layout-options {
+    margin: 2% 10% 2% 10%;
+}
+
+#include-stopwords-two-word {
+    margin-left: 10%;
+}
+
+#include-stopwords {
+    margin-left: 10%;
+}
+
+button {
+    margin-left: 10%;
 }
