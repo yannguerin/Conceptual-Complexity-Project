@@ -8,11 +8,29 @@ from dash import html, Input, Output, dcc
 # General Scaffolding
 
 
+# navbar = dbc.NavbarSimple(
+#     children=[
+#         dbc.NavItem(dbc.NavLink(page['name'],
+#                     href=page["relative_path"]))
+#         for page in dash.page_registry.values()],
+#     brand="Concept Complexity",
+#     brand_href="/Word-Graph",
+#     color="dark",
+#     links_left=True,
+#     dark=True,
+# )
+
+
 navbar = dbc.NavbarSimple(
     children=[
-        dbc.NavItem(dbc.NavLink("Page 1", href="/"))
+        dbc.NavItem(dbc.NavLink('Home',
+                    href='/')),
+        dbc.NavItem(dbc.NavLink('Complexity Index',
+                    href='/Complexity-Index')),
+        dbc.NavItem(dbc.NavLink('Two Word Graph',
+                    href='/Two-Word-Graph'))
     ],
-    brand="Concept",
+    brand="Concept Complexity",
     brand_href="/",
     color="dark",
     links_left=True,
@@ -113,7 +131,7 @@ text_area_input = dcc.Textarea(id='complexity-text-input', value='Input Text to 
                                style={'width': '80%', 'height': 300, 'margin': '2% 10% 2% 10%'})
 
 complexity_index_output = html.H4(
-    "Complexity Index", id='complexity-index-output', style={'margin-left': '10%'})
+    "Complexity Index:", id='complexity-index-output', style={'margin-left': '10%'})
 
 complexity_calculations = html.Div([
     text_area_input,
@@ -136,3 +154,98 @@ complexity_calculations = html.Div([
 #         },
 #     }
 # ]
+
+#
+# ### TWO WORD GRAPH COMPONENTS
+#
+
+# Inputs
+# Word Search
+two_word_input = html.Div(
+    [
+        dbc.Input(id="word-input-two-word-left",
+                  placeholder="Search for First Word", type="text"),
+        dbc.Input(id="word-input-two-word-right",
+                  placeholder="Search for Second Word", type="text"),
+        html.Br()
+    ],
+    id="two-word-input-div"
+)
+# Depth Option
+two_word_depth_slider = html.Div([
+    html.H6("Pick the Recursive Depth of the Concept Graph",
+            style={"margin-left": "2%"}),
+    dcc.Slider(1, 3, 1,
+               value=2,
+               id='depth-slider-two-word'
+               ),
+    dbc.Badge("Chosen Depth of 2", color="info",
+              id='chosen-depth-display-two-word')
+],
+    style={"margin": "2% 10% 2% 10%"}
+)
+
+# Generate Button
+
+two_word_button_generate = html.Button(
+    'Generate Graph', id='generate-two-word', n_clicks=0)
+
+# StopWords Toggle
+
+two_word_include_stopwords = dcc.Checklist(
+    ['Include StopWords'], id='include-stopwords-two-word')
+
+# Graph Layout Options
+two_word_layout_options = ['concentric', 'breadthfirst', 'circle', 'random']
+two_word_graph_layout_options = dcc.Dropdown(
+    two_word_layout_options, 'breadthfirst', id='graph-layout-options-two-word')
+
+# Cytoscape Graph
+
+two_word_default_style = [
+    {
+        'selector': 'edge',
+        'style': {
+            'width': 0.1,
+            'mid-target-arrow-shape': 'triangle',
+            'arrow-scale': 1
+        }
+    },
+    {
+        'selector': 'node',
+        'style': {
+            'label': 'data(label)'
+        }
+    }
+]
+
+two_word_cyto_graph = cyto.Cytoscape(
+    id='cytoscape-graph-two-word',
+    style={'width': '80%', 'height': '1000px'},
+    minZoom=0.05,
+    maxZoom=10,
+    zoom=1,
+    zoomingEnabled=True,
+    pan={"x": 100, "y": 0},
+    elements=[],
+    layout={
+        "name": "breadthfirst",
+        "roots": "[id = 'defenestration']",
+        # "circle": "false"
+    },
+    stylesheet=two_word_default_style
+)
+
+two_word_cyto_component = html.Div(two_word_cyto_graph,
+                                   className="bg-dark rounded-3",
+                                   style={"margin": "5% 5% 5% 5%"}
+                                   )
+
+
+# Graph Info Components
+two_word_clicked_num_connected = html.Pre(
+    id='clicked-num-connected-two-word',
+    style={
+        'border': 'thin lightgrey solid',
+        'overflowX': 'scroll'
+    })
