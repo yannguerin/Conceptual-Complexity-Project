@@ -175,8 +175,8 @@ two_word_input = html.Div(
 two_word_depth_slider = html.Div([
     html.H6("Pick the Recursive Depth of the Concept Graph",
             style={"margin-left": "2%"}),
-    dcc.Slider(1, 3, 1,
-               value=2,
+    dcc.Slider(1, 5, 1,
+               value=3,
                id='depth-slider-two-word'
                ),
     dbc.Badge("Chosen Depth of 2", color="info",
@@ -249,3 +249,6 @@ two_word_clicked_num_connected = html.Pre(
         'border': 'thin lightgrey solid',
         'overflowX': 'scroll'
     })
+
+two_word_swapper = dbc.Button(
+    "Swap the Words", color='primary', id='two-word-swapper')

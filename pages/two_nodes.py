@@ -101,7 +101,7 @@ def generateGraph(n_clicks: int, first_word: str, second_word: str, depth_value:
         initial_value = first_word.strip()
         if not include_stopwords:
             word_data = database.get_two_word_data(
-                initial_value, second_word.strip(), depth_value)[::-1]
+                initial_value, second_word.strip(), depth_value)
             word_data = [(source, target) for source,
                          target in word_data if source not in eng_stopwords and target not in eng_stopwords]
         else:
@@ -130,6 +130,20 @@ def generateGraph(n_clicks: int, first_word: str, second_word: str, depth_value:
         return elements
     else:
         return []
+
+# Swap Two Words
+
+
+@dash.callback(Output('word-input-two-word-right', 'value'),
+               Output('word-input-two-word-left', 'value'),
+               Input('two-word-swapper', 'n_clicks'),
+               Input('word-input-two-word-right', 'value'),
+               Input('word-input-two-word-left', 'value'))
+def swap_two_words(n_clicks: int, right_word: str, left_word: str) -> tuple[str, str]:
+    if n_clicks and left_word and right_word and (n_clicks % 2) != 0:
+        return str(left_word), str(right_word)
+    else:
+        return right_word, left_word
 
 
 # Graph Layout Picker
@@ -168,6 +182,7 @@ layout = html.Div(
         two_word_include_stopwords,
         two_word_graph_layout_options,
         two_word_button_generate,
+        two_word_swapper,
         two_word_cyto_component,
         html.P("Database Connection", id='database-loading-two-word'),
         html.P("Positions", id="pan-pos-two-word"),
