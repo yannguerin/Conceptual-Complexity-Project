@@ -8,7 +8,7 @@ class Value(Struct):
 
 
 class RowItem(Struct):
-    value: Value
+    value: str
 
 
 class Row(Struct):
