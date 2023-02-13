@@ -29,9 +29,20 @@ def displayDepthOption(depth_value: int) -> str:
 
 @dash.callback(Output('clicked-num-connected', 'children'),
                Output('cytoscape-graph', 'stylesheet'),
-               Input('cytoscape-graph', 'tapNode'))
-def displayTapNodeData(data: dict) -> tuple[str, dict]:
-    current_style = default_style
+               Input('cytoscape-graph', 'tapNode'),
+               Input("word-input", "value"))
+def displayTapNodeData(data: dict, word_value: str) -> tuple[str, dict]:
+    current_style = two_word_default_style.copy()
+    highlight_starting_words = [{
+        'selector': f'#{word_value}',
+        'style': {
+            'color': ' green',
+            'background-color': 'green',
+            'width': 50,
+            'height': 50
+        }
+    }]
+    current_style.extend(highlight_starting_words)
     if data:
         new_edge_style = [{
             'selector': f'#{edge["id"]}',
@@ -45,8 +56,8 @@ def displayTapNodeData(data: dict) -> tuple[str, dict]:
             'style': {
                 'color': ' red',
                 'background-color': 'red',
-                'width': 100,
-                'height': 100
+                'width': 50,
+                'height': 50
             }
         } for edge in data["edgesData"]]
         current_style.extend(new_edge_style)
