@@ -28,12 +28,21 @@ def displayDepthOption(depth_value: int) -> str:
 # On clicking of node
 
 
-@dash.callback(Output('clicked-num-connected-two-word', 'children'),
-               Output('cytoscape-graph-two-word', 'stylesheet'),
+@dash.callback(Output('cytoscape-graph-two-word', 'stylesheet'),
                Input('cytoscape-graph-two-word', 'tapNode'),
                Input("word-input-two-word-left", "value"),
                Input("word-input-two-word-right", "value"))
-def displayTapNodeData(data: dict, first_word: str, second_word: str) -> tuple[str, dict]:
+def displayTapNodeData(data: dict, first_word: str, second_word: str) -> dict:
+    """Highlights the Nodes and Edges connected to the Tapped Node
+
+    Args:
+        data (dict): tapNode Data, containing the nodes and edges connected to the tapped node
+        first_word (str): the left word input, used to highlight it green
+        second_word (str): the right word input, used to highlight it green
+
+    Returns:
+        dict: Containing the updated stylesheet for the cytoscape graph
+    """
     current_style = two_word_default_style.copy()
     highlight_starting_words = [{
         'selector': f'#{first_word}',
@@ -73,9 +82,9 @@ def displayTapNodeData(data: dict, first_word: str, second_word: str) -> tuple[s
         } for edge in data["edgesData"]]
         current_style.extend(new_edge_style)
         current_style.extend(new_node_style)
-        return dumps(len(data), indent=2), current_style
+        return current_style
     else:
-        return "", current_style
+        return current_style
 
 # On Panning
 
@@ -95,18 +104,24 @@ def displayPanPosition(value: int) -> dict:
                Input("depth-slider-two-word", 'value'),
                Input('include-stopwords-two-word', 'value'))
 def generateGraph(n_clicks: int, first_word: str, second_word: str, depth_value: int, include_stopwords: bool) -> list:
+    """Generates the Network Graph connecting Two Words via their dictionary definitions
+
+    Args:
+        n_clicks (int): Number of clicks on the button to generate the graph
+        first_word (str): The left word input value
+        second_word (str): The right word input value
+        depth_value (int): The depth at which to search to attempt to connect both words
+        include_stopwords (bool): A boolean value to choose whether or not to include stopwords in the graph
+
+    Returns:
+        list: _description_
+    """
     # Cytoscape Element Generation
     if n_clicks > 0 and first_word and second_word and depth_value:
-        database = Neo4jHTTPManager()
+        database = Neo4jHTTPManager()  # Create an instance of the Neo4j Database Manager
         initial_value = first_word.strip()
-        if not include_stopwords:
-            word_data = database.get_two_word_data(
-                initial_value, second_word.strip(), depth_value)
-            word_data = [(source, target) for source,
-                         target in word_data if source not in eng_stopwords and target not in eng_stopwords]
-        else:
-            word_data = database.get_two_word_data(
-                initial_value, second_word.strip(), depth_value)
+        word_data = database.get_two_word_data(
+            initial_value, second_word.strip(), depth_value, include_stopwords)
 
         # Nodes
         nodes = [initial_value, second_word.strip()]
@@ -166,8 +181,6 @@ def graph_layout_pick(layout_option: str, first_word: str, second_word: str, lay
             new_layout['roots'] = f"#{first_word}"
             # new_layout['circle'] = True
             new_layout['padding'] = 50
-            # Add position shifting
-            # nodes.positions(shiftPositions)
         return new_layout
     else:
         return layout

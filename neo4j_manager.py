@@ -12,6 +12,9 @@ from msgspec.json import decode
 from settings import URI, AUTH
 from msgspec_custom_structs import *
 
+from nltk.corpus import stopwords
+eng_stopwords = set(stopwords.words('english'))
+
 
 class Neo4jDriverManager:
 
@@ -51,6 +54,11 @@ class Neo4jDriverManager:
 
 
 class Neo4jHTTPManager:
+    """
+    A Class that manages the connection to, and queries to the Neo4j database, 
+    along with the parsing of the data for visualization
+    """
+
     def __init__(self):
         self.session = requests.Session()
         # TODO: Make this part, regarding passwords, much more secure
@@ -65,8 +73,18 @@ class Neo4jHTTPManager:
     def spec_word_rows(self, spec_response: bytes) -> list[tuple[str, str]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value']) for data in spec_response.results[0].data]
 
-    def get_word_rows(self, spec_response: bytes) -> set[tuple[str, str]]:
-        return set(chain.from_iterable([tuple(pairwise([d['value'] for d in data.row[0] if d])) for data in spec_response.results[0].data]))
+    def get_word_rows(self, spec_response: bytes, include_stopwords: bool) -> set[tuple[str, str]]:
+        if not include_stopwords:
+            # Create list of tuples containing the word, word relationships, removing all empty nodes
+            paths = [tuple(pairwise([d['value'] for d in data.row[0] if d]))
+                     for data in spec_response.results[0].data]
+            # Removing paths that contain any stopwords
+            no_stopword_paths = [path for path in paths if not bool(
+                eng_stopwords & set(chain.from_iterable(path)))]
+            # Chaining the unique relationships into a set of node, node
+            return set(chain.from_iterable(no_stopword_paths))
+        else:
+            return set(chain.from_iterable([tuple(pairwise([d['value'] for d in data.row[0] if d])) for data in spec_response.results[0].data]))
 
     def spec_word_rows_with_length(self, spec_response: bytes) -> list[tuple[str, str, int]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value'], (len(data.row[0]) / 2 + 0.5)) for data in spec_response.results[0].data]
@@ -104,15 +122,34 @@ class Neo4jHTTPManager:
         return response.content
 
     def get_word_data(self, value: str, path_length: int) -> list[tuple[str, str]]:
+        """Gets the words connected to the starting word up to a depth specified by path_length
+
+        Args:
+            value (str): The word value to start the search from
+            path_length (int): The maximum depth/path length of definitions to get the words of
+
+        Returns:
+            list[tuple[str, str]]: Node, Node relationships representing the network of words connected to the starting word
+        """
         word_path = self.get_word_paths_raw(value, path_length)
         raw_data = decode(word_path, type=Result)
         return self.spec_word_rows(raw_data)
 
-    def get_two_word_data(self, first_word: str, second_word: str, path_length: int) -> list[tuple[str, str]]:
+    def get_two_word_data(self, first_word: str, second_word: str, path_length: int, include_stopwords: bool) -> list[tuple[str, str]]:
+        """Gets the word paths that connect two words, and parses the data into a list of tuples representing the nodes and relationships
+
+        Args:
+            first_word (str): The word to connect to the second word
+            second_word (str): The second word to be connected to
+            path_length (int): The maximum path length to search for when attempting to connect both words
+
+        Returns:
+            list[tuple[str, str]]: Node, Node relationships representing the paths between both words
+        """
         word_path = self.get_two_word_paths_raw(
             first_word, second_word, path_length)
         raw_data = decode(word_path, type=Result)
-        return self.get_word_rows(raw_data)
+        return self.get_word_rows(raw_data, include_stopwords)
 
 
 if __name__ == "__main__":
