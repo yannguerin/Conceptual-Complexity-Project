@@ -1,8 +1,11 @@
+from spacy import load
 import re
 from collections import Counter
 
 from nltk.corpus import stopwords
 eng_stopwords = set(stopwords.words('english'))
+
+nlp = load("en_core_web_sm")
 
 
 def basic_parser(full_definition: str) -> str:
@@ -66,13 +69,26 @@ def complexity_index(df, text: str):
             index += float(df.frequency[df.word == word])
             count += 1
         except TypeError:
-            print(word)
+            word_lemma = get_lemma(word)
+            if word_lemma and word_lemma != word:
+                try:
+                    index += float(df.frequency[df.word == word_lemma])
+                    count += 1
+                except TypeError:
+                    print(word)
+            else:
+                print(word)
 
     return index / count if count != 0 else "Error, Attempted Division by Zero"
 
 
+def get_lemma(word: str) -> str:
+    doc = nlp(word)
+    return doc[0].lemma_ if doc else None
+
+
 def prep_complexity_index_text(text: str) -> list[str]:
-    no_special_characters = re.sub(":|,|\.|\(|\)", "", text).strip()
+    no_special_characters = re.sub(":|,|\.|\(|\)|[|]|\"", "", text).strip()
     no_stopwords = [word.lower() for word in no_special_characters.split()
                     if word not in eng_stopwords]
     return no_stopwords
