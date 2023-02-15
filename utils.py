@@ -2,6 +2,8 @@ from typing import Union
 from spacy import load
 import re
 from collections import Counter
+# Importing DataFrame for typing purposes
+from pandas import DataFrame
 # Loading english stopwords
 from nltk.corpus import stopwords
 eng_stopwords = set(stopwords.words('english'))
@@ -61,7 +63,7 @@ def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = Tr
         return Counter(cleaned_definition.lower().split())
 
 
-def complexity_index(df, text: str) -> str:
+def complexity_index(df: DataFrame, text: str) -> str:
     """Calculates an index for the complexity of the given text
 
     Args:
