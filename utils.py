@@ -1,10 +1,11 @@
+from typing import Union
 from spacy import load
 import re
 from collections import Counter
-
+# Loading english stopwords
 from nltk.corpus import stopwords
 eng_stopwords = set(stopwords.words('english'))
-
+# NLP object for lemmatization
 nlp = load("en_core_web_sm")
 
 
@@ -60,15 +61,29 @@ def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = Tr
         return Counter(cleaned_definition.lower().split())
 
 
-def complexity_index(df, text: str):
+def complexity_index(df, text: str) -> str:
+    """Calculates an index for the complexity of the given text
+
+    Args:
+        df (_type_): The Pandas Dataframe containing the values used in calculating the index
+        text (str): The text to be calculated
+
+    Returns:
+        str: The average of the index values for each word,
+        or a message warning the user that there are no words and therefore a division by zero was attempted
+    """
     index = 0
     count = 0
+    # Cleaning the text provided, returning a list of all the words
     cleaned_text = prep_complexity_index_text(text)
+    # Looping through all the words
     for word in cleaned_text:
         try:
+            # Trying to get the value for the word as is
             index += float(df.frequency[df.word == word])
             count += 1
-        except TypeError:
+        except TypeError:  # Errors occur when the word is not in the dictionary
+            # Lemmatizing the word and trying again
             word_lemma = get_lemma(word)
             if word_lemma and word_lemma != word:
                 try:
@@ -78,17 +93,36 @@ def complexity_index(df, text: str):
                     print(word)
             else:
                 print(word)
+    # Returning the average value of all the words
+    return str(index / count) if count != 0 else "Error, Attempted Division by Zero"
 
-    return index / count if count != 0 else "Error, Attempted Division by Zero"
 
+def get_lemma(word: str) -> Union[str, None]:
+    """Getting the lemma of the given word
 
-def get_lemma(word: str) -> str:
+    Args:
+        word (str): Word to be lemmatized
+
+    Returns:
+        Union[str, None]: Lemmatized word or None if no lemma was found
+    """
     doc = nlp(word)
     return doc[0].lemma_ if doc else None
 
 
 def prep_complexity_index_text(text: str) -> list[str]:
+    """Removes all unwanted characters and splits the text into words, lowercases everything
+    then removes all stopwords
+
+    Args:
+        text (str): Text to be cleaned and preped
+
+    Returns:
+        list[str]: List of words to be passed to the complexity index calculator
+    """
+    # Remove unwanted characters
     no_special_characters = re.sub(":|,|\.|\(|\)|[|]|\"", "", text).strip()
+    # Split, lower, and remove stopwords
     no_stopwords = [word.lower() for word in no_special_characters.split()
                     if word not in eng_stopwords]
     return no_stopwords

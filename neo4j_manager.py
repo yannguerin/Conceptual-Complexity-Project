@@ -2,6 +2,7 @@ import time
 import logging
 import base64
 from itertools import pairwise, chain
+from collections import Counter
 
 import requests
 from neo4j import GraphDatabase
@@ -73,7 +74,16 @@ class Neo4jHTTPManager:
     def spec_word_rows(self, spec_response: bytes) -> list[tuple[str, str]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value']) for data in spec_response.results[0].data]
 
-    def get_word_rows(self, spec_response: bytes, include_stopwords: bool) -> set[tuple[str, str]]:
+    def get_word_rows(self, spec_response: bytes, include_stopwords: bool) -> Counter[tuple[str, str]]:
+        """Parses the msgspec response object into a Counter object of word, word tuples 
+
+        Args:
+            spec_response (bytes): The parsed json object from msgspec
+            include_stopwords (bool): Whether or not to inlude stopwords in the result
+
+        Returns:
+            Counter[tuple[str, str]]: Counter object of each tuple of word, word
+        """
         if not include_stopwords:
             # Create list of tuples containing the word, word relationships, removing all empty nodes
             paths = [tuple(pairwise([d['value'] for d in data.row[0] if d]))
@@ -82,9 +92,9 @@ class Neo4jHTTPManager:
             no_stopword_paths = [path for path in paths if not bool(
                 eng_stopwords & set(chain.from_iterable(path)))]
             # Chaining the unique relationships into a set of node, node
-            return set(chain.from_iterable(no_stopword_paths))
+            return Counter(chain.from_iterable(no_stopword_paths))
         else:
-            return set(chain.from_iterable([tuple(pairwise([d['value'] for d in data.row[0] if d])) for data in spec_response.results[0].data]))
+            return Counter(chain.from_iterable([tuple(pairwise([d['value'] for d in data.row[0] if d])) for data in spec_response.results[0].data]))
 
     def spec_word_rows_with_length(self, spec_response: bytes) -> list[tuple[str, str, int]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value'], (len(data.row[0]) / 2 + 0.5)) for data in spec_response.results[0].data]

@@ -1,4 +1,5 @@
 from json import dumps
+from collections import Counter
 
 import dash
 import dash_cytoscape as cyto
@@ -12,7 +13,6 @@ from nltk.corpus import stopwords
 eng_stopwords = set(stopwords.words('english'))
 
 dash.register_page(__name__, path='/Two-Word-Graph')
-
 # Callbacks
 
 # For Word Search and Depth Option
@@ -68,7 +68,6 @@ def displayTapNodeData(data: dict, first_word: str, second_word: str) -> dict:
             'selector': f'#{edge["id"]}',
             'style': {
                 'line-color': 'red',
-                'width': 3
             }
         } for edge in data["edgesData"]]
         new_node_style = [{
@@ -76,8 +75,6 @@ def displayTapNodeData(data: dict, first_word: str, second_word: str) -> dict:
             'style': {
                 'color': 'red',
                 'background-color': 'red',
-                'width': 50,
-                'height': 50
             }
         } for edge in data["edgesData"]]
         current_style.extend(new_edge_style)
@@ -85,14 +82,6 @@ def displayTapNodeData(data: dict, first_word: str, second_word: str) -> dict:
         return current_style
     else:
         return current_style
-
-# On Panning
-
-
-@dash.callback(Output("cytoscape-graph-two-word", 'pan'),
-               Input("depth-slider-two-word", 'value'))
-def displayPanPosition(value: int) -> dict:
-    return {"x": value*10, "y": value*10}
 
 # On Generate
 
@@ -114,7 +103,7 @@ def generateGraph(n_clicks: int, first_word: str, second_word: str, depth_value:
         include_stopwords (bool): A boolean value to choose whether or not to include stopwords in the graph
 
     Returns:
-        list: _description_
+        list: A list of dictionaries containing all the node and edge data for Cytoscape
     """
     # Cytoscape Element Generation
     if n_clicks > 0 and first_word and second_word and depth_value:
@@ -124,21 +113,25 @@ def generateGraph(n_clicks: int, first_word: str, second_word: str, depth_value:
             initial_value, second_word.strip(), depth_value, include_stopwords)
 
         # Nodes
-        nodes = [initial_value, second_word.strip()]
-        for word_tuple in word_data:
-            nodes.append(word_tuple[0])
+
+        count_nodes = {initial_value: 1, second_word.strip(): 1}
+        # for word_tuple in word_data:
+        #     nodes.append(word_tuple[0])
+
+        count_nodes.update(
+            dict(Counter([source for source, _ in word_data.keys()])))
 
         cyto_nodes = [
             {
-                'data': {'id': word, 'label': word}
+                'data': {'id': word, 'label': word, 'size': 25 + (size * 10)}
             }
-            for word in nodes
+            for word, size in count_nodes.items()
         ]
 
         # Edges
         cyto_edges = [
-            {'data': {'source': source, 'target': target}}
-            for source, target in word_data
+            {'data': {'source': source, 'target': target, 'weight': count}}
+            for (source, target), count in word_data.items()
         ]
 
         elements = cyto_nodes + cyto_edges
@@ -171,6 +164,19 @@ def swap_two_words(n_clicks: int, right_word: str, left_word: str) -> tuple[str,
                Input('cytoscape-graph-two-word', 'layout'),
                Input('depth-slider-two-word', 'value'))
 def graph_layout_pick(layout_option: str, first_word: str, second_word: str, layout: dict, depth: int) -> dict:
+    """Callback for the dropdown menu allowing the user to choose the layout for the Cytoscape graph,
+    and adding extra parameters for the layout based on the chosen layout
+
+    Args:
+        layout_option (str): The chosen layout from the dropdown
+        first_word (str): The left word input value
+        second_word (str): The right word input value
+        layout (dict): Layout dictionary to be passed to Cytoscape
+        depth (int): The chosen depth value
+
+    Returns:
+        dict: Updated layout dictionary for Cytoscape graph
+    """
     if layout_option and first_word and second_word:
         new_layout = layout
         new_layout['name'] = layout_option
