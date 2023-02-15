@@ -106,6 +106,7 @@ def generateGraph(n_clicks: int, first_word: str, second_word: str, depth_value:
 
     Returns:
         list: A list of dictionaries containing all the node and edge data for Cytoscape
+        int: Returning 0 to reset the n_clicks value
     """
     # Cytoscape Element Generation
     if n_clicks > 0 and first_word and second_word and depth_value:
@@ -146,14 +147,25 @@ def generateGraph(n_clicks: int, first_word: str, second_word: str, depth_value:
 
 @dash.callback(Output('word-input-two-word-right', 'value'),
                Output('word-input-two-word-left', 'value'),
+               Output('two-word-swapper', 'n_clicks'),
                Input('two-word-swapper', 'n_clicks'),
                Input('word-input-two-word-right', 'value'),
                Input('word-input-two-word-left', 'value'))
-def swap_two_words(n_clicks: int, right_word: str, left_word: str) -> tuple[str, str]:
-    if n_clicks and left_word and right_word and (n_clicks % 2) != 0:
-        return str(left_word), str(right_word)
+def swap_two_words(n_clicks: int, right_word: str, left_word: str) -> tuple[str, str, int]:
+    """Swaps the two word input values when a button is clicked
+
+    Args:
+        n_clicks (int): Number of clicks on the button
+        right_word (str): The right word input value
+        left_word (str): The left word input value
+
+    Returns:
+        tuple[str, str, int]: The left word, right word, and 0 clicks when button is clicked, otherwise it keeps things the same
+    """
+    if n_clicks and left_word and right_word:
+        return str(left_word), str(right_word), 0
     else:
-        return right_word, left_word
+        return right_word, left_word, 0
 
 
 # Graph Layout Picker
