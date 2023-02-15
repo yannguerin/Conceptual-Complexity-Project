@@ -206,7 +206,7 @@ two_word_default_style = [
     {
         'selector': 'edge',
         'style': {
-            'width': 0.1,
+            'width': 'data(weight)',
             'mid-target-arrow-shape': 'triangle',
             'arrow-scale': 1
         }
@@ -214,7 +214,9 @@ two_word_default_style = [
     {
         'selector': 'node',
         'style': {
-            'label': 'data(label)'
+            'label': 'data(label)',
+            'width': 'data(size)',
+            'height': 'data(size)'
         }
     }
 ]
