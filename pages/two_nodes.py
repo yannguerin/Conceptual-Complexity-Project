@@ -1,5 +1,6 @@
 from json import dumps
 from collections import Counter
+import time
 
 import dash
 import dash_cytoscape as cyto
@@ -87,6 +88,7 @@ def displayTapNodeData(data: dict, first_word: str, second_word: str) -> dict:
 
 
 @dash.callback(Output("cytoscape-graph-two-word", 'elements'),
+               Output("generate-two-word", 'n_clicks'),
                Input("generate-two-word", 'n_clicks'),
                Input("word-input-two-word-left", "value"),
                Input("word-input-two-word-right", "value"),
@@ -135,9 +137,9 @@ def generateGraph(n_clicks: int, first_word: str, second_word: str, depth_value:
         ]
 
         elements = cyto_nodes + cyto_edges
-        return elements
+        return elements, 0
     else:
-        return []
+        return [], 0
 
 # Swap Two Words
 
