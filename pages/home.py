@@ -1,4 +1,5 @@
 from json import dumps
+from collections import Counter
 import dash
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
@@ -32,7 +33,7 @@ def displayDepthOption(depth_value: int) -> str:
                Input('cytoscape-graph', 'tapNode'),
                Input("word-input", "value"))
 def displayTapNodeData(data: dict, word_value: str) -> tuple[str, dict]:
-    current_style = two_word_default_style.copy()
+    current_style = default_style.copy()
     highlight_starting_words = [{
         'selector': f'#{word_value}',
         'style': {
@@ -48,7 +49,6 @@ def displayTapNodeData(data: dict, word_value: str) -> tuple[str, dict]:
             'selector': f'#{edge["id"]}',
             'style': {
                 'line-color': ' red',
-                'width': 3
             }
         } for edge in data["edgesData"]]
         new_node_style = [{
@@ -56,28 +56,19 @@ def displayTapNodeData(data: dict, word_value: str) -> tuple[str, dict]:
             'style': {
                 'color': ' red',
                 'background-color': 'red',
-                'width': 50,
-                'height': 50
             }
         } for edge in data["edgesData"]]
         current_style.extend(new_edge_style)
         current_style.extend(new_node_style)
         return dumps(len(data), indent=2), current_style
     else:
-        return "", default_style
-
-# On Panning
-
-
-@dash.callback(Output("cytoscape-graph", 'pan'),
-               Input("depth-slider", 'value'))
-def displayPanPosition(value: int) -> dict:
-    return {"x": value*10, "y": value*10}
+        return "", current_style
 
 # On Generate
 
 
 @dash.callback(Output("cytoscape-graph", 'elements'),
+               Output("generate", 'n_clicks'),
                Input("generate", 'n_clicks'),
                Input("word-input", "value"),
                Input("depth-slider", 'value'),
@@ -87,37 +78,33 @@ def generateGraph(n_clicks: int, word_value: str, depth_value: int, include_stop
     if n_clicks > 0 and word_value and depth_value:
         database = Neo4jHTTPManager()
         initial_value = word_value.strip()
-        if not include_stopwords:
-            word_data = database.get_word_data(
-                initial_value, depth_value)[::-1]
-            word_data = set([(source, target) for source,
-                            target in word_data if source not in eng_stopwords and target not in eng_stopwords])
-        else:
-            word_data = set(database.get_word_data(
-                initial_value, depth_value)[::-1])
+        word_data = database.get_word_data(
+            initial_value, depth_value, include_stopwords)
 
         # Nodes
-        nodes = [initial_value]
-        for word_tuple in word_data:
-            nodes.append(word_tuple[1])
+        count_nodes = {initial_value: 1}
+        count_nodes.update(
+            dict(Counter([source for source, _ in word_data.keys()])))
+        count_nodes.update(
+            dict(Counter([target for _, target in word_data.keys()])))
 
         cyto_nodes = [
             {
-                'data': {'id': word, 'label': word}
+                'data': {'id': word, 'label': word, 'size': 25 + (size * 10)}
             }
-            for word in set(nodes)
+            for word, size in count_nodes.items()
         ]
 
         # Edges
         cyto_edges = [
-            {'data': {'source': source, 'target': target}}
-            for source, target in word_data
+            {'data': {'source': source, 'target': target, 'weight': count / 2}}
+            for (source, target), count in word_data.items()
         ]
 
         elements = cyto_nodes + cyto_edges
-        return elements
+        return elements, 0
     else:
-        return []
+        return [], 0
 
 
 # @app.callback(Input("cytoscape-graph", 'elements'),
@@ -139,9 +126,9 @@ def graph_layout_pick(layout_option: str, word_value: str, layout: dict, depth: 
     if layout_option and word_value:
         new_layout = layout
         new_layout['name'] = layout_option
-        new_layout['spacingFactor'] = depth * 5
+        new_layout['spacingFactor'] = depth * 3
         new_layout['avoidOverlap'] = True
-        new_layout['nodeDimensionsIncludeLabels'] = 'true'
+        new_layout['nodeDimensionsIncludeLabels'] = True
         if layout_option == "breadthfirst":
             new_layout['roots'] = f"[id = '{word_value}']"
             new_layout['circle'] = True
