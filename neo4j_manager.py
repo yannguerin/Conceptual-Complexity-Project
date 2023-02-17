@@ -61,7 +61,6 @@ class Neo4jHTTPManager:
     """
 
     def __init__(self):
-        self.session = requests.Session()
         # TODO: Make this part, regarding passwords, much more secure
         username, password = AUTH
         credentials = f"{username}:{password}"
@@ -74,7 +73,7 @@ class Neo4jHTTPManager:
     def spec_word_rows(self, spec_response: bytes) -> list[tuple[str, str]]:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value']) for data in spec_response.results[0].data]
 
-    def get_word_rows(self, spec_response: bytes, include_stopwords: bool) -> Counter[tuple[str, str]]:
+    def get_word_rows(self, spec_response: Result, include_stopwords: bool) -> Counter[tuple[str, str]]:
         """Parses the msgspec response object into a Counter object of word, word tuples 
 
         Args:
@@ -100,38 +99,40 @@ class Neo4jHTTPManager:
         return [(data.row[0][-3]['value'], data.row[0][-1]['value'], (len(data.row[0]) / 2 + 0.5)) for data in spec_response.results[0].data]
 
     def get_word_paths_raw(self, value: str, path_length: int) -> bytes:
-        # Define the Neo4j query
-        query = {
-            "statements": [
-                {
-                    "statement": f"MATCH (w:Word) USING TEXT INDEX w:Word(value) WHERE w.value = '{value}' MATCH p = (w)-[:HAS_WORD*1..{path_length}]->(:Word) RETURN p;",
-                    "resultDataContents": ["row"]
-                }
-            ]
-        }
+        with requests.Session() as session:
+            # Define the Neo4j query
+            query = {
+                "statements": [
+                    {
+                        "statement": f"MATCH (w:Word) USING TEXT INDEX w:Word(value) WHERE w.value = '{value}' MATCH p = (w)-[:HAS_WORD*1..{path_length}]->(:Word) RETURN p;",
+                        "resultDataContents": ["row"]
+                    }
+                ]
+            }
 
-        # Send the request to the Neo4j endpoint
-        response = self.session.post(
-            self.endpoint, json=query, headers=self.headers)
-        return response.content
+            # Send the request to the Neo4j endpoint
+            response = session.post(
+                self.endpoint, json=query, headers=self.headers)
+            return response.content
 
-    def get_two_word_paths_raw(self, first_word: str, second_word: str, max_path_length: int) -> dict:
-        # Define the Neo4j query
-        query = {
-            "statements": [
-                {
-                    "statement": f"MATCH p=(start:Word)-[:HAS_WORD*1..{max_path_length}]->(end:Word) WHERE start.value = '{first_word}' AND end.value = '{second_word}' RETURN p ORDER BY length(p) ASC",
-                    "resultDataContents": ["row"]
-                }
-            ]
-        }
+    def get_two_word_paths_raw(self, first_word: str, second_word: str, max_path_length: int) -> bytes:
+        with requests.Session() as session:
+            # Define the Neo4j query
+            query = {
+                "statements": [
+                    {
+                        "statement": f"MATCH p=(start:Word)-[:HAS_WORD*1..{max_path_length}]->(end:Word) WHERE start.value = '{first_word}' AND end.value = '{second_word}' RETURN p ORDER BY length(p) ASC",
+                        "resultDataContents": ["row"]
+                    }
+                ]
+            }
 
-        # Send the request to the Neo4j endpoint
-        response = self.session.post(
-            self.endpoint, json=query, headers=self.headers)
-        return response.content
+            # Send the request to the Neo4j endpoint
+            response = session.post(
+                self.endpoint, json=query, headers=self.headers)
+            return response.content
 
-    def get_word_data(self, value: str, path_length: int) -> list[tuple[str, str]]:
+    def get_word_data(self, value: str, path_length: int, include_stopwords: bool) -> Counter[tuple[str, str]]:
         """Gets the words connected to the starting word up to a depth specified by path_length
 
         Args:
@@ -139,13 +140,13 @@ class Neo4jHTTPManager:
             path_length (int): The maximum depth/path length of definitions to get the words of
 
         Returns:
-            list[tuple[str, str]]: Node, Node relationships representing the network of words connected to the starting word
+            Counter[tuple[str, str]]: Node, Node relationships representing the network of words connected to the starting word
         """
         word_path = self.get_word_paths_raw(value, path_length)
         raw_data = decode(word_path, type=Result)
-        return self.spec_word_rows(raw_data)
+        return self.get_word_rows(raw_data, include_stopwords)
 
-    def get_two_word_data(self, first_word: str, second_word: str, path_length: int, include_stopwords: bool) -> list[tuple[str, str]]:
+    def get_two_word_data(self, first_word: str, second_word: str, path_length: int, include_stopwords: bool) -> Counter[tuple[str, str]]:
         """Gets the word paths that connect two words, and parses the data into a list of tuples representing the nodes and relationships
 
         Args:
@@ -154,11 +155,14 @@ class Neo4jHTTPManager:
             path_length (int): The maximum path length to search for when attempting to connect both words
 
         Returns:
-            list[tuple[str, str]]: Node, Node relationships representing the paths between both words
+            Counter[tuple[str, str]]: Node, Node relationships representing the paths between both words
         """
+        # Get the JSON Path bytes from the HTTP api
         word_path = self.get_two_word_paths_raw(
             first_word, second_word, path_length)
+        # Decode the bytes using MsgSpec and the Result Struct
         raw_data = decode(word_path, type=Result)
+        # Return the rows of the decoded data
         return self.get_word_rows(raw_data, include_stopwords)
 
 
