@@ -80,7 +80,7 @@ default_style = [
     {
         'selector': 'edge',
         'style': {
-            'width': 0.1,
+            'width': 'data(weight)',
             'mid-target-arrow-shape': 'triangle',
             'arrow-scale': 1
         }
@@ -88,7 +88,9 @@ default_style = [
     {
         'selector': 'node',
         'style': {
-            'label': 'data(label)'
+            'label': 'data(label)',
+            'width': 'data(size)',
+            'height': 'data(size)'
         }
     }
 ]
@@ -96,11 +98,11 @@ default_style = [
 cyto_graph = cyto.Cytoscape(
     id='cytoscape-graph',
     style={'width': '80%', 'height': '600px'},
-    minZoom=0.05,
+    minZoom=0.01,
     maxZoom=10,
     zoom=1,
     zoomingEnabled=True,
-    pan={"x": 100, "y": 0},
+    pan={"x": 0, "y": 0},
     elements=[],
     layout={
         "name": "breadthfirst",
@@ -223,12 +225,12 @@ two_word_default_style = [
 
 two_word_cyto_graph = cyto.Cytoscape(
     id='cytoscape-graph-two-word',
-    style={'width': '80%', 'height': '1000px'},
+    style={'width': '100%', 'height': '1000px'},
     minZoom=0.05,
     maxZoom=10,
     zoom=1,
     zoomingEnabled=True,
-    pan={"x": 100, "y": 0},
+    pan={"x": 0, "y": 0},
     elements=[],
     layout={
         "name": "breadthfirst",
@@ -249,7 +251,6 @@ two_word_clicked_num_connected = html.Pre(
     id='clicked-num-connected-two-word',
     style={
         'border': 'thin lightgrey solid',
-        'overflowX': 'scroll'
     })
 
 two_word_swapper = dbc.Button(
