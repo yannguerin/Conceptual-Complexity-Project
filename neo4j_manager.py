@@ -70,9 +70,6 @@ class Neo4jHTTPManager:
         }
         self.endpoint = "http://localhost:7474/db/data/transaction/commit"
 
-    def spec_word_rows(self, spec_response: bytes) -> list[tuple[str, str]]:
-        return [(data.row[0][-3]['value'], data.row[0][-1]['value']) for data in spec_response.results[0].data]
-
     def get_word_rows(self, spec_response: Result, include_stopwords: bool) -> Counter[tuple[str, str]]:
         """Parses the msgspec response object into a Counter object of word, word tuples 
 
@@ -94,9 +91,6 @@ class Neo4jHTTPManager:
             return Counter(chain.from_iterable(no_stopword_paths))
         else:
             return Counter(chain.from_iterable([tuple(pairwise([d['value'] for d in data.row[0] if d])) for data in spec_response.results[0].data]))
-
-    def spec_word_rows_with_length(self, spec_response: bytes) -> list[tuple[str, str, int]]:
-        return [(data.row[0][-3]['value'], data.row[0][-1]['value'], (len(data.row[0]) / 2 + 0.5)) for data in spec_response.results[0].data]
 
     def get_word_paths_raw(self, value: str, path_length: int) -> bytes:
         with requests.Session() as session:
