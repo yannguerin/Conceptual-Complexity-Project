@@ -5,7 +5,7 @@ import time
 import dash
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
-from dash import html, Input, Output, dcc
+from dash import html, Input, Output, dcc, ctx
 
 from components import *
 from neo4j_manager import Neo4jHTTPManager
@@ -206,6 +206,28 @@ def graph_layout_pick(layout_option: str, first_word: str, second_word: str, lay
         return layout
 
 
+@dash.callback(Output("cytoscape-graph-two-word", "generateImage"),
+               Input("two-word-download", "n_clicks"),
+               Input('word-input-two-word-left', 'value'),
+               Input('word-input-two-word-right', 'value'),
+               Input('depth-slider-two-word', 'value'),
+               prevent_initial_call=True)
+def download_graph_image(n_clicks, first_word, second_word, depth_value):
+    action = "store"
+    ftype = "jpg"
+    download_dict = {
+        "type": ftype,
+        "action": action
+    }
+    if ctx.triggered and ctx.triggered_id == "two-word-download" and first_word and second_word:
+        download_dict["action"] = "download"
+        download_dict["ftype"] = "jpg"
+        filename = f"{first_word}_{second_word}_{depth_value}"
+        download_dict["filename"] = filename
+
+    return download_dict
+
+
 layout = html.Div(
     children=[
         html.H1("Two Words: Graphed"),
@@ -218,6 +240,7 @@ layout = html.Div(
         two_word_graph_layout_options,
         two_word_button_generate,
         two_word_swapper,
+        two_word_download_button,
         two_word_cyto_component,
         html.P("Database Connection", id='database-loading-two-word'),
         html.P("Positions", id="pan-pos-two-word"),
