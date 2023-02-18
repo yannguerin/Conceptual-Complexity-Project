@@ -150,7 +150,7 @@ complexity_index_output = html.H4(
     "Complexity Index:", id='complexity-index-output')
 
 unknown_word_list = html.P(
-    children="", id='unknown-word-list', style={'margin-left': '10%'})
+    children="Unknown Words/Terms: ", id='unknown-word-list', style={'margin-left': '10%'})
 
 use_wikipedia_summaries_checkbox = dcc.Checklist(
     ['Replace Unknown Words/Terms with Wikipedia Summaries (if available)'], id='use-wikipedia-summaries', style={"float": "right", "margin-right": "10%", "margin-top": "5px"})
