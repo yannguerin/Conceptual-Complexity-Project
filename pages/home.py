@@ -144,7 +144,18 @@ def graph_layout_pick(layout_option: str, word_value: str, layout: dict, depth: 
                Input('word-input', 'value'),
                Input('depth-slider', 'value'),
                prevent_initial_call=True)
-def download_graph_image(n_clicks, word, depth_value):
+def download_graph_image(n_clicks: int, word: str, depth_value: int) -> dict:
+    """Downloads a jpg image of the graph, following the click of the download button
+        Sets the filename to the word and depth values
+
+    Args:
+        n_clicks (int): Number of clicks to the download button
+        word (str): Word input value, for filename
+        depth_value (int): Depth value, for filename and scaling 
+
+    Returns:
+        dict: A dictionary of settings for the downloading, specifying the type and filename
+    """
     action = "store"
     ftype = "jpg"
     download_dict = {
