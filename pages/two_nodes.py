@@ -251,8 +251,5 @@ layout = html.Div(
         two_word_graph_layout_options,
         two_word_button_div,
         two_word_cyto_component,
-        html.P("Database Connection", id='database-loading-two-word'),
-        html.P("Positions", id="pan-pos-two-word"),
-        two_word_clicked_num_connected
     ]
 )
