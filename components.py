@@ -71,7 +71,7 @@ include_stopwords = dcc.Checklist(
 
 stopword_tooltip = dbc.Tooltip(
     "Stopwords are words that are (often) insignificant to the definition of a word. Stopwords include: the, at, a, an, but...",
-    target='include-stopwords-two-word',
+    target='include-stopwords',
     placement='top-start')
 
 stopword_div = html.Div(children=[
@@ -146,7 +146,7 @@ text_area_input = dcc.Textarea(id='complexity-text-input', value='Input Text to 
                                style={'width': '80%', 'height': 300, 'margin': '2% 10% 2% 10%'})
 
 complexity_index_output = html.H4(
-    "Complexity Index:", id='complexity-index-output', style={'margin-left': '10%'})
+    "Complexity Index:", id='complexity-index-output')
 
 complexity_calculations = html.Div([
     text_area_input,
