@@ -28,8 +28,7 @@ def displayDepthOption(depth_value: int) -> str:
 # On clicking of node
 
 
-@dash.callback(Output('clicked-num-connected', 'children'),
-               Output('cytoscape-graph', 'stylesheet'),
+@dash.callback(Output('cytoscape-graph', 'stylesheet'),
                Input('cytoscape-graph', 'tapNode'),
                Input("word-input", "value"))
 def displayTapNodeData(data: dict, word_value: str) -> tuple[str, dict]:
@@ -60,9 +59,9 @@ def displayTapNodeData(data: dict, word_value: str) -> tuple[str, dict]:
         } for edge in data["edgesData"]]
         current_style.extend(new_edge_style)
         current_style.extend(new_node_style)
-        return dumps(len(data), indent=2), current_style
+        return current_style
     else:
-        return "", current_style
+        return current_style
 
 # On Generate
 
@@ -142,14 +141,15 @@ def graph_layout_pick(layout_option: str, word_value: str, layout: dict, depth: 
 
 layout = html.Div(
     children=[
+        html.H1("One Word: Graphed"),
+        html.H3("Exploring the words connected to a word via dictionary definitions"),
         word_input,
         depth_slider,
-        include_stopwords,
+        stopword_div,
+        html.H5(
+            "Layout Option Dropdown: The algorithm used to determine the positions of the nodes in the graph"),
         graph_layout_options,
         button_generate,
-        cyto_component,
-        html.P("Database Connection", id='database-loading'),
-        html.P("Positions", id="pan-pos"),
-        clicked_num_connected
+        cyto_component
     ]
 )

@@ -212,7 +212,9 @@ layout = html.Div(
         html.H3("Exploring how two words connect together via dictionary definitions"),
         two_word_input,
         two_word_depth_slider,
-        two_word_include_stopwords,
+        two_word_stopword_div,
+        html.H5(
+            "Layout Option Dropdown: The algorithm used to determine the positions of the nodes in the graph"),
         two_word_graph_layout_options,
         two_word_button_generate,
         two_word_swapper,

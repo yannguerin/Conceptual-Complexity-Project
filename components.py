@@ -69,6 +69,17 @@ button_generate = html.Button('Generate Graph', id='generate', n_clicks=0)
 include_stopwords = dcc.Checklist(
     ['Include StopWords'], id='include-stopwords')
 
+stopword_tooltip = dbc.Tooltip(
+    "Stopwords are words that are (often) insignificant to the definition of a word. Stopwords include: the, at, a, an, but...",
+    target='include-stopwords-two-word',
+    placement='top-start')
+
+stopword_div = html.Div(children=[
+    include_stopwords,
+    stopword_tooltip
+])
+
+
 # Graph Layout Options
 layout_options = ['concentric', 'breadthfirst', 'circle', 'random']
 graph_layout_options = dcc.Dropdown(
@@ -97,7 +108,7 @@ default_style = [
 
 cyto_graph = cyto.Cytoscape(
     id='cytoscape-graph',
-    style={'width': '80%', 'height': '600px'},
+    style={'width': '80%', 'height': '1000px'},
     minZoom=0.01,
     maxZoom=10,
     zoom=1,
@@ -197,6 +208,16 @@ two_word_button_generate = html.Button(
 two_word_include_stopwords = dcc.Checklist(
     ['Include StopWords'], id='include-stopwords-two-word')
 
+two_word_stopword_tooltip = dbc.Tooltip(
+    "Stopwords are words that are (often) insignificant to the definition of a word. Stopwords include: the, at, a, an, but...",
+    target='include-stopwords-two-word',
+    placement='top-start')
+
+two_word_stopword_div = html.Div(children=[
+    two_word_include_stopwords,
+    two_word_stopword_tooltip
+])
+
 # Graph Layout Options
 two_word_layout_options = ['concentric', 'breadthfirst', 'circle', 'random']
 two_word_graph_layout_options = dcc.Dropdown(
@@ -255,3 +276,6 @@ two_word_clicked_num_connected = html.Pre(
 
 two_word_swapper = dbc.Button(
     "Swap the Words", color='primary', id='two-word-swapper')
+
+two_word_download_button = dbc.Button(
+    "Download Graph Image", color='primary', id='two-word-download')
