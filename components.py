@@ -62,7 +62,8 @@ depth_slider = html.Div([
 
 # Generate Button
 
-button_generate = html.Button('Generate Graph', id='generate', n_clicks=0)
+button_generate = dbc.Button(
+    'Generate Graph', color="primary", id='generate', n_clicks=0)
 
 # StopWords Toggle
 
@@ -129,7 +130,7 @@ cyto_component = html.Div(cyto_graph,
                           )
 
 download_button = dbc.Button(
-    "Download Graph Image", color='primary', id='download')
+    "Download Graph Image", color='primary', id='download', style={"margin-right": "10%", "float": "right"})
 
 # Graph Info Components
 clicked_num_connected = html.Pre(
@@ -150,8 +151,8 @@ complexity_index_output = html.H4(
 
 complexity_calculations = html.Div([
     text_area_input,
-    html.Button('Submit', id='submit-text-complexity',
-                n_clicks=0, style={'margin-left': '10%'}),
+    dbc.Button('Submit', color="primary", id='submit-text-complexity',
+               n_clicks=0, style={'margin-left': '10%'}),
     complexity_index_output
 ])
 
@@ -202,8 +203,22 @@ two_word_depth_slider = html.Div([
 
 # Generate Button
 
-two_word_button_generate = html.Button(
-    'Generate Graph', id='generate-two-word', n_clicks=0)
+two_word_button_generate = dbc.Button(
+    'Generate Graph', color="primary", id='generate-two-word', n_clicks=0)
+
+two_word_swapper = dbc.Button(
+    "Swap the Word Inputs", color='primary', id='two-word-swapper')
+
+two_word_download_button = dbc.Button(
+    "Download Graph Image", color='primary', id='two-word-download')
+
+two_word_button_div = html.Div(children=[
+    two_word_button_generate,
+    two_word_swapper,
+    two_word_download_button
+],
+    style={'margin-top': "5%", 'margin-right': "10%", "text-align": "center"}
+)
 
 # StopWords Toggle
 
@@ -275,9 +290,3 @@ two_word_clicked_num_connected = html.Pre(
     style={
         'border': 'thin lightgrey solid',
     })
-
-two_word_swapper = dbc.Button(
-    "Swap the Words", color='primary', id='two-word-swapper')
-
-two_word_download_button = dbc.Button(
-    "Download Graph Image", color='primary', id='two-word-download')

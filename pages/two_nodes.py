@@ -249,9 +249,7 @@ layout = html.Div(
         html.H5(
             "Layout Option Dropdown: The algorithm used to determine the positions of the nodes in the graph"),
         two_word_graph_layout_options,
-        two_word_button_generate,
-        two_word_swapper,
-        two_word_download_button,
+        two_word_button_div,
         two_word_cyto_component,
         html.P("Database Connection", id='database-loading-two-word'),
         html.P("Positions", id="pan-pos-two-word"),
