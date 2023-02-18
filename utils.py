@@ -157,8 +157,10 @@ def prep_complexity_index_text(text: str) -> list[str]:
     Returns:
         list[str]: List of words to be passed to the complexity index calculator
     """
+    no_citations = re.sub("\[.\]", "", text)
     # Remove unwanted characters
-    no_special_characters = re.sub(":|,|\.|\(|\)|[|]|\"", "", text).strip()
+    no_special_characters = re.sub(
+        ":|,|\.|\(|\)|\[|\]|\"|;", "", no_citations).strip()
     # Split, lower, and remove stopwords
     no_stopwords = [word.lower() for word in no_special_characters.split()
                     if word not in eng_stopwords]
