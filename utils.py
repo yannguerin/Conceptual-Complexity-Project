@@ -2,6 +2,8 @@ from typing import Union
 from spacy import load
 import re
 from collections import Counter
+# Requests for Wikipedia Summaries
+import requests
 # Importing DataFrame for typing purposes
 from pandas import DataFrame
 # Loading english stopwords
@@ -63,7 +65,7 @@ def definition_word_counter(cleaned_definition: str, remove_stopwords: bool = Tr
         return Counter(cleaned_definition.lower().split())
 
 
-def complexity_index(df: DataFrame, text: str) -> str:
+def complexity_index(df: DataFrame, text: str, use_wikipedia_summaries: bool) -> tuple[str, list[str]]:
     """Calculates an index for the complexity of the given text
 
     Args:
@@ -76,6 +78,7 @@ def complexity_index(df: DataFrame, text: str) -> str:
     """
     index = 0
     count = 0
+    unknown_words = []
     # Cleaning the text provided, returning a list of all the words
     cleaned_text = prep_complexity_index_text(text)
     # Looping through all the words
@@ -92,11 +95,43 @@ def complexity_index(df: DataFrame, text: str) -> str:
                     index += float(df.frequency[df.word == word_lemma])
                     count += 1
                 except TypeError:
-                    print(word)
+                    unknown_words.append(word)
             else:
-                print(word)
+                unknown_words.append(word)
+    if use_wikipedia_summaries:
+        unknowns_index, unknowns_count = get_unknown_words_complexities(
+            df, unknown_words)
+        index += unknowns_index
+        count += unknowns_count
     # Returning the average value of all the words
-    return str(index / count) if count != 0 else "Error, Attempted Division by Zero"
+    average_index = str(
+        index / count) if count != 0 else "Error, Attempted Division by Zero"
+    return average_index, unknown_words
+
+
+def get_unknown_words_complexities(df: DataFrame, unknown_words: list[str]) -> tuple[float, int]:
+    summaries = [get_wikipedia_summary(
+        unknown_word, content_type="text") for unknown_word in unknown_words]
+    summary_text = " ".join(summaries)
+    cleaned_text = prep_complexity_index_text(summary_text)
+    index = 0
+    count = 0
+    # Looping through all the words
+    for word in cleaned_text:
+        try:
+            # Trying to get the value for the word as is
+            index += float(df.frequency[df.word == word])
+            count += 1
+        except TypeError:  # Errors occur when the word is not in the dictionary
+            # Lemmatizing the word and trying again
+            word_lemma = get_lemma(word)
+            if word_lemma and word_lemma != word:
+                try:
+                    index += float(df.frequency[df.word == word_lemma])
+                    count += 1
+                except TypeError:
+                    pass
+    return index, count
 
 
 def get_lemma(word: str) -> Union[str, None]:
@@ -128,6 +163,18 @@ def prep_complexity_index_text(text: str) -> list[str]:
     no_stopwords = [word.lower() for word in no_special_characters.split()
                     if word not in eng_stopwords]
     return no_stopwords
+
+
+def get_wikipedia_summary(page_name, content_type='html'):
+    response = requests.get(
+        f"https://en.wikipedia.org/api/rest_v1/page/summary/{page_name}")
+    if response.status_code == 200:
+        if content_type == 'html':
+            return response.json()["extract_html"]
+        elif content_type == 'text':
+            return response.json()["extract"]
+    else:
+        return page_name
 
 # if __name__ == "__main__":
 #     run = Word('run')

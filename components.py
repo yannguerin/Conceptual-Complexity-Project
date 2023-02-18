@@ -149,12 +149,22 @@ text_area_input = dcc.Textarea(id='complexity-text-input', value='Input Text to 
 complexity_index_output = html.H4(
     "Complexity Index:", id='complexity-index-output')
 
+unknown_word_list = html.P(
+    children="", id='unknown-word-list', style={'margin-left': '10%'})
+
+use_wikipedia_summaries_checkbox = dcc.Checklist(
+    ['Replace Unknown Words/Terms with Wikipedia Summaries (if available)'], id='use-wikipedia-summaries', style={"float": "right", "margin-right": "10%", "margin-top": "5px"})
+
 complexity_calculations = html.Div([
     text_area_input,
-    dbc.Button('Submit', color="primary", id='submit-text-complexity',
-               n_clicks=0, style={'margin-left': '10%'}),
-    complexity_index_output
+    html.Div(children=[dbc.Button('Submit', color="primary", id='submit-text-complexity',
+                                  n_clicks=0, style={'margin-left': '10%'}),
+                       use_wikipedia_summaries_checkbox]
+             ),
+    complexity_index_output,
+    unknown_word_list
 ])
+
 
 # default_stylesheet = [
 #     {
