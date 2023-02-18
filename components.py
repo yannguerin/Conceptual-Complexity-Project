@@ -128,6 +128,8 @@ cyto_component = html.Div(cyto_graph,
                           style={"margin": "5% 5% 5% 5%"}
                           )
 
+download_button = dbc.Button(
+    "Download Graph Image", color='primary', id='download')
 
 # Graph Info Components
 clicked_num_connected = html.Pre(

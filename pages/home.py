@@ -3,7 +3,7 @@ from collections import Counter
 import dash
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
-from dash import html, Input, Output, dcc
+from dash import html, Input, Output, dcc, ctx
 
 from components import *
 from neo4j_manager import Neo4jHTTPManager
@@ -139,6 +139,30 @@ def graph_layout_pick(layout_option: str, word_value: str, layout: dict, depth: 
         return layout
 
 
+@dash.callback(Output("cytoscape-graph", "generateImage"),
+               Input("download", "n_clicks"),
+               Input('word-input', 'value'),
+               Input('depth-slider', 'value'),
+               prevent_initial_call=True)
+def download_graph_image(n_clicks, word, depth_value):
+    action = "store"
+    ftype = "jpg"
+    download_dict = {
+        "type": ftype,
+        "action": action
+    }
+    if ctx.triggered and ctx.triggered_id == "download" and word:
+        download_dict["action"] = "download"
+        download_dict["ftype"] = "jpg"
+        filename = f"{word}_{depth_value}"
+        download_dict["filename"] = filename
+        download_dict["options"] = {
+            "scale": depth_value * 2
+        }
+
+    return download_dict
+
+
 layout = html.Div(
     children=[
         html.H1("One Word: Graphed"),
@@ -150,6 +174,7 @@ layout = html.Div(
             "Layout Option Dropdown: The algorithm used to determine the positions of the nodes in the graph"),
         graph_layout_options,
         button_generate,
+        download_button,
         cyto_component
     ]
 )
