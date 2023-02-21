@@ -34,9 +34,9 @@ def complexity_index_calculator(n_clicks: int, text: str, use_wikipedia_summarie
     if n_clicks > 0:
         complexity_index_value, unknown_words = complexity_index(
             df, text, use_wikipedia_summaries)
-        return "Complexity Index: " + complexity_index_value, " ".join(unknown_words), 0
+        return "Complexity Index: " + complexity_index_value, f"Unknown Words/Terms: {', '.join(unknown_words)}", 0
     else:
-        return "Complexity Index:", "", 0
+        return "Complexity Index:", "Unknown Words/Terms: ", 0
 
 
 layout = html.Div([
