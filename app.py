@@ -2,7 +2,6 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html
 
-
 from components import navbar
 
 app = dash.Dash(__name__, use_pages=True,

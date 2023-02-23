@@ -110,6 +110,16 @@ def complexity_index(df: DataFrame, text: str, use_wikipedia_summaries: bool) ->
 
 
 def get_unknown_words_complexities(df: DataFrame, unknown_words: list[str]) -> tuple[float, int]:
+    """A similar function to the complexity index, but it first gets the wikipedia summaries
+        of each unknown word and then gets their complexity values
+
+    Args:
+        df (DataFrame): The dataframe containing the words and their complexity values
+        unknown_words (list[str]): The unknown words to first get the wikipedia summaries of
+
+    Returns:
+        tuple[float, int]: The total of all the complexity values and the number of words/terms searched
+    """
     summaries = [get_wikipedia_summary(
         unknown_word, content_type="text") for unknown_word in unknown_words]
     summary_text = " ".join(summaries)
@@ -167,7 +177,16 @@ def prep_complexity_index_text(text: str) -> list[str]:
     return no_stopwords
 
 
-def get_wikipedia_summary(page_name, content_type='html'):
+def get_wikipedia_summary(page_name: str, content_type: str = 'html') -> str:
+    """Gets the wikipedia summary for a term/word/page, if none is found it simply returns the term/word/page value
+
+    Args:
+        page_name (str): The page name to search for a summary of
+        content_type (str, optional): The content type to return (text or html). Defaults to 'html'.
+
+    Returns:
+        str: The summary for the page_name, in html or text, or the page name itself
+    """
     response = requests.get(
         f"https://en.wikipedia.org/api/rest_v1/page/summary/{page_name}")
     if response.status_code == 200:
@@ -177,13 +196,3 @@ def get_wikipedia_summary(page_name, content_type='html'):
             return response.json()["extract"]
     else:
         return page_name
-
-# if __name__ == "__main__":
-#     run = Word('run')
-#     cleaned_run = basic_parser(run.full_definition)
-#     print(prep_definition_text(cleaned_run))
-#     print(definition_word_counter(cleaned_run))
-
-
-if __name__ == "__main__":
-    pass
