@@ -1,11 +1,12 @@
 from utils import prep_definition_text, basic_parser
-from pymongo import MongoClient
 from motor.motor_asyncio import AsyncIOMotorClient
 import spacy
 import asyncio
 import time
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
+# Old Version of getting data
+# The code in this file is no longer used, I moved over to Neo4j instead
 
 client = AsyncIOMotorClient()
 db = client.MerriamWebster
