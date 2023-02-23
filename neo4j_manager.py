@@ -61,13 +61,13 @@ class Neo4jHTTPManager:
     """
 
     def __init__(self):
-        # TODO: Make this part, regarding passwords, much more secure
         username, password = AUTH
         credentials = f"{username}:{password}"
         credentials_b64 = base64.b64encode(credentials.encode()).decode()
         self.headers = {
             "Authorization": f"Basic {credentials_b64}"
         }
+        # Localhost for Self-Managed Neo4j Instance
         self.endpoint = "http://localhost:7474/db/data/transaction/commit"
 
     def get_word_rows(self, spec_response: Result, include_stopwords: bool) -> Counter[tuple[str, str]]:
@@ -93,6 +93,16 @@ class Neo4jHTTPManager:
             return Counter(chain.from_iterable([tuple(pairwise([d['value'] for d in data.row[0] if d])) for data in spec_response.results[0].data]))
 
     def get_word_paths_raw(self, value: str, path_length: int) -> bytes:
+        """Makes the request to the Neo4j database to run the query that finds all paths connected to the word (value) up to a certain path length 
+            and returns the content of the response
+
+        Args:
+            value (str): The word value to start the search from
+            path_length (int): The max path length to get data of
+
+        Returns:
+            bytes: The raw bytes of the response content from Neo4j
+        """
         with requests.Session() as session:
             # Define the Neo4j query
             query = {
@@ -110,6 +120,18 @@ class Neo4jHTTPManager:
             return response.content
 
     def get_two_word_paths_raw(self, first_word: str, second_word: str, max_path_length: int) -> bytes:
+        """Makes the request to the Neo4j database to run the query that finds all paths that connect two words together up to a certain path length 
+            and returns the content of the response
+
+        Args:
+            first_word (str): The word value to start the search from
+            second_word (str): The second word value to find a connecting path with
+            path_length (int): The max path length to search for a connection between the two words
+
+        Returns:
+            bytes: The raw bytes of the response content from Neo4j
+        """
+
         with requests.Session() as session:
             # Define the Neo4j query
             query = {
