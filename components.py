@@ -1,25 +1,10 @@
-import dash
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
-from dash import html, Input, Output, dcc
+from dash import html, dcc
 
 # Layout Components
 
 # General Scaffolding
-
-
-# navbar = dbc.NavbarSimple(
-#     children=[
-#         dbc.NavItem(dbc.NavLink(page['name'],
-#                     href=page["relative_path"]))
-#         for page in dash.page_registry.values()],
-#     brand="Concept Complexity",
-#     brand_href="/Word-Graph",
-#     color="dark",
-#     links_left=True,
-#     dark=True,
-# )
-
 
 navbar = dbc.NavbarSimple(
     children=[
@@ -164,22 +149,6 @@ complexity_calculations = html.Div([
     complexity_index_output,
     unknown_word_list
 ])
-
-
-# default_stylesheet = [
-#     {
-#         "selector": "node",
-#         "style": {
-#             "width": "data(size)",
-#             "height": "data(size)",
-#             "background-color": "mapData(layer, 0, 3, white, blue)",
-#             "content": "data(label)",
-#             "font-size": "12px",
-#             "text-valign": "center",
-#             "text-halign": "center",
-#         },
-#     }
-# ]
 
 #
 # ### TWO WORD GRAPH COMPONENTS
