@@ -1,5 +1,4 @@
 import time
-import logging
 import base64
 from itertools import pairwise, chain
 from collections import Counter
@@ -56,7 +55,7 @@ class Neo4jDriverManager:
 
 class Neo4jHTTPManager:
     """
-    A Class that manages the connection to, and queries to the Neo4j database, 
+    A Class that manages the connection and queries to the Neo4j database, 
     along with the parsing of the data for visualization
     """
 
