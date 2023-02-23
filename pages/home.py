@@ -31,7 +31,16 @@ def displayDepthOption(depth_value: int) -> str:
 @dash.callback(Output('cytoscape-graph', 'stylesheet'),
                Input('cytoscape-graph', 'tapNode'),
                Input("word-input", "value"))
-def displayTapNodeData(data: dict, word_value: str) -> tuple[str, dict]:
+def displayTapNodeData(data: dict, word_value: str) -> dict:
+    """Highlights nodes and edges when a node is clicked
+
+    Args:
+        data (dict): The tapped node data
+        word_value (str): The word input value
+
+    Returns:
+        dict: The updated stylesheet to highlight nodes and edges
+    """
     current_style = default_style.copy()
     highlight_starting_words = [{
         'selector': f'#{word_value}',
@@ -72,7 +81,18 @@ def displayTapNodeData(data: dict, word_value: str) -> tuple[str, dict]:
                Input("word-input", "value"),
                Input("depth-slider", 'value'),
                Input('include-stopwords', 'value'))
-def generateGraph(n_clicks: int, word_value: str, depth_value: int, include_stopwords: bool) -> list:
+def generateGraph(n_clicks: int, word_value: str, depth_value: int, include_stopwords: bool) -> tuple[list, int]:
+    """Generates the Cytoscape graph when the Generate button is clicked
+
+    Args:
+        n_clicks (int): The number of clicks on the generate button
+        word_value (str): The word input value, to start the graph from
+        depth_value (int): The max depth/path length to search for
+        include_stopwords (bool): Whether of not to include paths containing stopwords
+
+    Returns:
+        tuple[list, int]: The list of nodes and edges for Cytoscape graph, 0 for resetting the n_clicks value of the Generate button
+    """
     # Cytoscape Element Generation
     if n_clicks > 0 and word_value and depth_value:
         database = Neo4jHTTPManager()
@@ -122,6 +142,17 @@ def generateGraph(n_clicks: int, word_value: str, depth_value: int, include_stop
                Input('cytoscape-graph', 'layout'),
                Input('depth-slider', 'value'))
 def graph_layout_pick(layout_option: str, word_value: str, layout: dict, depth: int) -> dict:
+    """A callback for the dropdown allowing the user to pick the graph layout algorithm
+
+    Args:
+        layout_option (str): The layout option chosen from the dropdown
+        word_value (str): The word input value
+        layout (dict): The current layout dict for Cytoscape
+        depth (int): The max depth searched, used to scale the graph
+
+    Returns:
+        dict: THe updated layout dict for Cytoscape
+    """
     if layout_option and word_value:
         new_layout = layout
         new_layout['name'] = layout_option
